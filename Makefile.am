@@ -1,0 +1,4 @@
+ACLOCAL_AMFLAGS = -I m4 --install
+AUTOMAKE_OPTIONS = foreign
+SUBDIRS = src
+EXTRA_DIST = bootstrap LICENSE README.md

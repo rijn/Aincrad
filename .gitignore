@@ -27,3 +27,22 @@
 *.exe
 *.out
 *.app
+
+*.o
+aincrad
+
+# generated files
+Makefile
+Makefile.in
+.deps
+/aclocal.m4
+/autom4te.cache
+/compile
+/config.log
+/config.status
+/configure
+/depcomp
+/install-sh
+/missing
+
+*.tar.gz
