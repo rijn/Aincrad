@@ -1,6 +1,7 @@
 <img src="https://raw.githubusercontent.com/rijn/Aincrad/master/res/logo.gif" width="500px" height="250px">
 
 # Aincrad
+
 Application manage and monitor tool designed for distributed system.
 
 ## Diagram
@@ -9,11 +10,11 @@ Application manage and monitor tool designed for distributed system.
 
 Aincrad could:
 
-* Realtime surveillance on multiple servers. track many resources like CPU and memory usage.
-* Remotely control server, run commends on bash, terminate processes, restart service, reboot, etc.
+* Real-time surveillance on multiple servers. Track many resources like CPU and memory usage.
+* Remotely control server, run commands on bash, terminate processes, restart service, reboot, etc.
 * Manage application running on clients, distribute files, easily integrate with version control system like Git.
 * Available for many public service and OS.
-* Install deamon on clients automaticlly.
+* Install daemon on clients automatically.
 
 ## Dependency
 
@@ -36,7 +37,7 @@ $ make
 # execute main program
 $ make main
 
-# run unit text
+# run unit test
 $ make test
 ```
 
