@@ -6,16 +6,26 @@ AM_INIT_AUTOMAKE
 # Checks for programs.
 AC_PROG_CXX
 
-# AC_CONFIG_FILES([
-# 	man/Makefile
-# ])
+AC_CONFIG_FILES([
+	Makefile
+	src/Makefile
+	test/Makefile
+])
 
+# Check Boost
+
+AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
 
-BOOST_REQUIRE([1.61],[AC_MSG_ERROR([Boost not found])])
-# AX_BOOST_BASE([1.48],, [AC_MSG_ERROR([libfoo needs Boost, but it was not found in your system])])
-# AX_BOOST_SYSTEM
-# AX_BOOST_FILESYSTEM
+BOOST_REQUIRE([1.61], [AC_MSG_ERROR([Boost not found])])
+
+BOOST_MATH
+
+BOOST_CHRONO
+BOOST_FILESYSTEM
+BOOST_IOSTREAMS
+BOOST_SYSTEM
+BOOST_TEST
 
 # Checks for libraries.
 # PKG_CHECK_MODULES(BOOST, boost >= 1.61)
@@ -32,5 +42,5 @@ AC_TYPE_SIZE_T
 # Check for unportable pthread_setname_np()
 AC_CHECK_LIB(pthread, pthread_setname_np)
 
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT
 

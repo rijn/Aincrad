@@ -46,3 +46,14 @@ Makefile.in
 /missing
 
 *.tar.gz
+
+build/
+
+aincrad-*
+
+ltmain.sh
+libtool
+COPYING
+config.sub
+config.guess
+test-driver

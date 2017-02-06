@@ -15,6 +15,31 @@ Aincrad could:
 * Available for many public service and OS.
 * Install deamon on clients automaticlly.
 
+## Dependency
+
+```
+autoconf >= stable 2.69
+automake >= stable 1.15
+Boost >= stable 1.6.1
+```
+
+## Install
+
+```
+# configure on OSX
+$ brew install autoconf automake boost
+$ autoreconf --install --force
+$ mkdir build && cd build
+$ ../configure
+$ make
+
+# execute main program
+$ make main
+
+# run unit text
+$ make test
+```
+
 ## License
 
 MIT
