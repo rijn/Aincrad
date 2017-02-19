@@ -18,21 +18,14 @@ int main( int argc, char* argv[] ) {
 
     /* parser arguments */
     arguments   _arg;
-    std::string test_id;
     if ( !_arg.process_arguments( argc, argv ) ) return ( EXIT_FAILURE );
-    if ( _arg.exist( "test_id" ) ) {
-        test_id = _arg.value( "test_id" ).c_str();
-    } else {
-        return 0;
-    }
 
-    cout << colorize::make_color(colorize::LIGHT_BLUE, THEMIS) << endl;
+    cout << colorize::make_color(colorize::LIGHT_BLUE, AINCRAD) << endl;
 
     /* check environment */
     config _conf_remote;
 
-    if ( !_conf_remote.read_config( working_path + "/." + test_id +
-                                    "/.config" ) ) {
+    if ( !_conf_remote.read_config( working_path + "/.config" ) ) {
         exit_with_error( "Cannot find config file" );
     }
 

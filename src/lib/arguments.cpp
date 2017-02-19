@@ -77,7 +77,7 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
 
     if ( parse.error() ) return 1;
 
-    if ( options[HELP] || argc == 0 ) {
+    if ( options[HELP] ) {
         int columns = getenv( "COLUMNS" ) ? atoi( getenv( "COLUMNS" ) ) : 80;
         option::printUsage( fwrite, stdout, usage, columns );
         return 0;
@@ -88,7 +88,7 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
                   << std::string( opt->name, opt->namelen ) << "\n";
     if ( UNKNOWN ) return 0;
 
-    if ( 0 == parse.nonOptionsCount() ) return 0;
+    // if ( 0 == parse.nonOptionsCount() ) return 0;
 
     for ( int i = 0; i < parse.optionsCount(); ++i ) {
         option::Option& opt = buffer[i];
@@ -102,9 +102,6 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
                 break;
         }
     }
-
-    std::string test_id = parse.nonOption( 0 );
-    content_["test_id"] = test_id;
 
     return true;
 };
