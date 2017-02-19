@@ -23,6 +23,11 @@ LDFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -lpthread $(WARNI
 CXXFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -MMD -MP $(WARNINGS)
 -include $(OBJS_DIR)/*.d
 
+BUILD_SCRIPTS_DIR    = ./build-scripts
+TAGS_TARGETS         = $(BUILD_SCRIPTS_DIR)/tags.mk
+YCM_FLAGS_TARGETS    = $(BUILD_SCRIPTS_DIR)/ycm_flags.mk
+YCM_FLAGS_TEMPLATE   = $(BUILD_SCRIPTS_DIR)/ycm_extra_conf_template.py
+
 .PHONY: all
 all: release
 
@@ -48,7 +53,7 @@ echo-compile:
 	@echo "compiling..."
 
 echo-done:
-	@echo -e "done."
+	@echo -e "\033[;32mdone.\033[0m"
 
 $(EXENAME): $(DEPS:%.o=$(OBJS_DIR)/%.o) $(OBJS:%.o=$(OBJS_DIR)/%.o)
 	@echo -e " ld\t$<"
@@ -74,6 +79,30 @@ else
 endif
 
 .PHONY: help
+help:
+	@echo -ne "\033[;32m"
+	@echo "Please use \`make <target>' where <target> is one of"
+	@echo -e "\033[0m"
+	@echo "  help     to show this help"
+	@echo "  new      clean and build release"
+	@echo "  release  to build release version"
+	@echo "  debug    to build debug version with define"
+	@echo "  cloc     show code statistics"
+	@echo "  tags     to generate tags file"
+	@echo "  ycm_extra_conf"
+	@echo "       	  to generate .ycm_extra_conf.py file for YCM completion"
+
+.PHONY: help
+cloc:
+	@echo -e "\033[;32m"
+	@cloc . --exclude-list-file="src/lib/optionparser.h" --exclude-dir="build-scripts" --ignore-whitespace --exclude-lang="D"
+	@echo -e "\033[0m"
+
+include $(TAGS_TARGETS)
+include $(YCM_FLAGS_TARGETS)
+
+.PHONY: new
+new: clean all
 
 .PHONY: clean
 clean:
