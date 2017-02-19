@@ -27,18 +27,8 @@ Boost >= stable 1.6.1
 ## Install
 
 ```
-# configure on OSX
-$ brew install autoconf automake boost
-$ autoreconf --install --force
-$ mkdir build && cd build
-$ ../configure
-$ make
-
-# execute main program
-$ make main
-
-# run unit test
-$ make test
+# compile
+$ make all
 ```
 
 ## License

@@ -55,7 +55,7 @@ struct Arg : public option::Arg {
 };
 enum optionIndex { UNKNOWN, HELP, CONF };
 const option::Descriptor usage[] = {{UNKNOWN, 0, "", "", Arg::Unknown,
-                                     "USAGE: themis id [options]\n\n"
+                                     "USAGE: aincrad id [options]\n\n"
                                      "Options:"},
                                     {HELP, 0, "h", "help", option::Arg::None,
                                      "  --help -h \tPrint usage and exit."},

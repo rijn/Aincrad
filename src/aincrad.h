@@ -3,7 +3,6 @@
 
 #include "arguments.h"
 #include "config.h"
-#include "svn.h"
 #include "util.h"
 
 using namespace std;
