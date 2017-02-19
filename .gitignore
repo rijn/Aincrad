@@ -33,4 +33,4 @@ aincrad
 
 # generated files
 .deps
-.objs/
+objs/
