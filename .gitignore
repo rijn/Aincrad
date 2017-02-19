@@ -32,30 +32,5 @@
 aincrad
 
 # generated files
-Makefile
-Makefile.in
 .deps
-/aclocal.m4
-/autom4te.cache
-/compile
-/config.log
-/config.status
-/configure
-/depcomp
-/install-sh
-/missing
-
-*.tar.gz
-
-build/
-
-aincrad-*
-
-ltmain.sh
-libtool
-COPYING
-config.sub
-config.guess
-test-driver
-
 .objs/
