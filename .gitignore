@@ -57,3 +57,5 @@ COPYING
 config.sub
 config.guess
 test-driver
+
+.objs/
