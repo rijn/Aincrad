@@ -107,4 +107,4 @@ new: clean all
 .PHONY: clean
 clean:
 	@rm -f $(wildcard *.d) $(wildcard *.o) $(wildcard *.cgo) $(wildcard *.cga) $(EXENAME) $(CCMONAD) $(IDFILE)
-	@rm -rf .objs
+	@rm -rf $(OBJS_DIR)
