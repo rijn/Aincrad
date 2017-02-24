@@ -75,18 +75,18 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
 
     option::Parser parse( usage, argc, argv, options, buffer );
 
-    if ( parse.error() ) return 1;
+    if ( parse.error() ) return false;
 
     if ( options[HELP] ) {
         int columns = getenv( "COLUMNS" ) ? atoi( getenv( "COLUMNS" ) ) : 80;
         option::printUsage( fwrite, stdout, usage, columns );
-        return 0;
+        exit( EXIT_SUCCESS );
     }
 
     for ( option::Option* opt = options[UNKNOWN]; opt; opt = opt->next() )
         std::cout << "Unknown option: "
                   << std::string( opt->name, opt->namelen ) << "\n";
-    if ( UNKNOWN ) return 0;
+    if ( UNKNOWN ) return false;
 
     // if ( 0 == parse.nonOptionsCount() ) return 0;
 

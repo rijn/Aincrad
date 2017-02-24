@@ -30,6 +30,7 @@
 
 *.o
 aincrad
+aincrad-debug
 
 # generated files
 .deps

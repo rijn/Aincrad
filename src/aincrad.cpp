@@ -29,4 +29,6 @@ int main( int argc, char* argv[] ) {
         exit_with_error( "Cannot find config file" );
     }
 
+    cout << "basic/role = " << _conf_remote.value("basic", "role") << endl;
+
 }
