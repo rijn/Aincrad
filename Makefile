@@ -13,13 +13,13 @@ ROOT_DIR=$(shell pwd)
 CXX = clang++
 LD = clang++
 OBJS = $(EXENAME).o
-DEPS = arguments.o config.o util.o
+DEPS = arguments.o config.o util.o server.o client.cpp
 OBJS_DIR = objs
 OPTIMIZE = off
 INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/
 VPATH = ./src/ ./src/lib/ $(OBJS_DIR)
 WARNINGS = -pedantic -Wall -Werror -Wfatal-errors -Wextra -Wno-unused-parameter -Wno-unused-variable
-LDFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -lpthread $(WARNINGS)
+LDFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -lpthread -lboost_system $(WARNINGS)
 CXXFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -MMD -MP $(WARNINGS)
 -include $(OBJS_DIR)/*.d
 
