@@ -116,8 +116,8 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
     void start() {
         accept();
 
-        cout << "Server is listening on "
-             << "8888" << endl;
+        std::cout << "Server is listening on "
+             << "8888" << std::endl;
     };
 
     // broadcast
