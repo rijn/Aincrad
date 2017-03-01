@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "package.cpp"
+
 namespace network {
 
 using std::set;
@@ -20,6 +22,8 @@ using std::string;
 using std::deque;
 using boost::asio::ip::tcp;
 using boost::asio::buffer;
+
+using network::Package;
 
 class client {
    public:
@@ -41,6 +45,11 @@ typedef std::shared_ptr<_Server> server_ptr;
 
 class session : public client, public std::enable_shared_from_this<session> {
    public:
+    session( const session& ) = delete;
+    session& operator=( const session& ) = delete;
+    session( session&& ) noexcept        = delete;
+    session& operator=( session&& ) noexcept = delete;
+
     session( tcp::socket socket, server_ptr server )
         : _socket( std::move( socket ) ), _server( server ){};
 
@@ -93,6 +102,11 @@ class session : public client, public std::enable_shared_from_this<session> {
 
 class Server : public _Server, public std::enable_shared_from_this<Server> {
    public:
+    Server( const Server& ) = delete;
+    Server& operator=( const Server& ) = delete;
+    Server( Server&& ) noexcept        = delete;
+    Server& operator=( Server&& ) noexcept = delete;
+
     Server( boost::asio::io_service& io_service, const tcp::endpoint& endpoint )
         : _acceptor( io_service, endpoint ), _socket( io_service ){};
     ~Server(){};
