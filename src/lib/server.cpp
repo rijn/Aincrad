@@ -27,7 +27,7 @@ using network::Package;
 
 class client {
    public:
-    virtual ~client();
+    virtual ~client(){};
     virtual void send( const string& message ) = 0;
 };
 
@@ -52,6 +52,7 @@ class session : public client, public std::enable_shared_from_this<session> {
 
     session( tcp::socket socket, server_ptr server )
         : _socket( std::move( socket ) ), _server( server ){};
+    ~session(){};
 
     void start(){};
 
@@ -114,6 +115,9 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
     // start server
     void start() {
         accept();
+
+        cout << "Server is listening on "
+             << "8888" << endl;
     };
 
     // broadcast
