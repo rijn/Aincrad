@@ -107,16 +107,15 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
         (void)filter;
     };
 
-    void on(
-        const string& event,
-        std::function<void( const string&, client_ptr, const Server& )> fn ) {
+    void on( const string& event,
+             std::function<void( const string&, client_ptr, server_ptr )> fn ) {
         _el.push_back( make_pair( event, fn ) );
     };
 
     void apply( const string& event, client_ptr session, const string& msg ) {
         for ( auto e : _el ) {
             if ( e.first == event ) {
-                ( e.second )( msg, session, *shared_from_this() );
+                ( e.second )( msg, session, shared_from_this() );
             }
         }
     };
@@ -144,8 +143,8 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
     std::set<client_ptr> _clients;
 
-    vector<pair<const string&, std::function<void( const string&, client_ptr,
-                                                   const Server& )> > >
+    vector<pair<const string&,
+                std::function<void( const string&, client_ptr, server_ptr )> > >
         _el;
 };
 }
