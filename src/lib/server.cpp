@@ -1,4 +1,5 @@
 #include <array>
+#include <boost/asio.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -18,6 +19,7 @@ using std::pair;
 using std::string;
 using std::deque;
 using boost::asio::ip::tcp;
+using boost::asio::buffer;
 
 class client {
    public:
@@ -27,26 +29,69 @@ class client {
 
 typedef std::shared_ptr<client> client_ptr;
 
+class _Server {
+   public:
+    virtual ~_Server(){};
+    virtual void leave( client_ptr ) = 0;
+    virtual void apply( const string& event, client_ptr,
+                        const string& msg ) = 0;
+};
+
+typedef std::shared_ptr<_Server> server_ptr;
+
 class session : public client, public std::enable_shared_from_this<session> {
    public:
-    session( tcp::socket socket ) : _socket( std::move( socket ) ){};
+    session( tcp::socket socket, server_ptr server )
+        : _socket( std::move( socket ) ), _server( server ){};
 
     void start(){};
 
     // send message to this session
     void send( const string& message ) {
+        auto self( shared_from_this() );
+        // compress data into buffer
         (void)message;
+        char* buffer = NULL;
+        boost::asio::async_write(
+            _socket, boost::asio::buffer( buffer, 0 ),
+            [this, self]( boost::system::error_code ec,
+                          std::size_t /*length*/ ) {
+                if ( !ec ) {
+                    _server->apply( "send_finish", shared_from_this(), "" );
+                } else {
+                    _server->apply( "client_leave", shared_from_this(), "" );
+                    _server->leave( shared_from_this() );
+                }
+            } );
     };
 
    private:
-    void read(){};
+    void read() {
+        char _buffer[4096];
+        auto self( shared_from_this() );
+        boost::asio::async_read(
+            _socket, buffer( _buffer, 4096 ),
+            [this, self]( boost::system::error_code ec, std::size_t len ) {
+                (void)len;
+                if ( !ec ) {
+                    // extract info
+                    /*
+                     *_server->apply();
+                     */
+                } else {
+                    _server->apply( "client_leave", shared_from_this(), "" );
+                    _server->leave( shared_from_this() );
+                }
+            } );
+    };
 
     void write(){};
 
     tcp::socket _socket;
+    server_ptr  _server;
 };
 
-class Server : public std::enable_shared_from_this<Server> {
+class Server : public _Server, public std::enable_shared_from_this<Server> {
    public:
     Server( boost::asio::io_service& io_service, const tcp::endpoint& endpoint )
         : _acceptor( io_service, endpoint ), _socket( io_service ){};
@@ -62,15 +107,13 @@ class Server : public std::enable_shared_from_this<Server> {
         (void)filter;
     };
 
-    void on( const string& event,
-             std::function<void( const string& msg, const session& session,
-                                 const Server& server )>
-                 fn ) {
+    void on(
+        const string& event,
+        std::function<void( const string&, client_ptr, const Server& )> fn ) {
         _el.push_back( make_pair( event, fn ) );
     };
 
-    void apply( const string& event, const session& session,
-                const string& msg ) {
+    void apply( const string& event, client_ptr session, const string& msg ) {
         for ( auto e : _el ) {
             if ( e.first == event ) {
                 ( e.second )( msg, session, *shared_from_this() );
@@ -78,13 +121,16 @@ class Server : public std::enable_shared_from_this<Server> {
         }
     };
 
+    void leave( client_ptr ) {
+    }
+
    private:
     void accept() {
         _acceptor.async_accept(
             _socket, [this]( boost::system::error_code ec ) {
                 if ( !ec ) {
-                    auto ptr =
-                        std::make_shared<session>( std::move( _socket ) );
+                    auto ptr = std::make_shared<session>( std::move( _socket ),
+                                                          shared_from_this() );
                     _clients.insert( ptr );
                     ptr->start();
                 }
@@ -98,9 +144,8 @@ class Server : public std::enable_shared_from_this<Server> {
 
     std::set<client_ptr> _clients;
 
-    vector<pair<const string&,
-                std::function<void( const string& msg, const session& session,
-                                    const Server& server )> > >
+    vector<pair<const string&, std::function<void( const string&, client_ptr,
+                                                   const Server& )> > >
         _el;
 };
 }
