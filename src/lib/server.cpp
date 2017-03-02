@@ -93,8 +93,22 @@ class session : public client, public std::enable_shared_from_this<session> {
                 }
             } );
     };
+//TODO
+    void write(){
+        char _buffer[4096];
+        auto self( shared_from_this() );
+        boost::asio::async_write(_socket,
+         boost::asio::buffer(_buffer, 4096),
+         [this,self](boost::system::error_code ec){
+                if (!ec){
 
-    void write(){};
+
+                }
+                else{
+                    
+                }
+         } );
+    };
 
     tcp::socket _socket;
     server_ptr  _server;
