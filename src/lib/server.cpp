@@ -85,9 +85,7 @@ class session : public client, public std::enable_shared_from_this<session> {
                 (void)len;
                 if ( !ec ) {
                     // extract info
-                    /*
-                     *_server->apply();
-                     */
+                    read();
                 } else {
                     _server->apply( "client_leave", shared_from_this(), "" );
                     _server->leave( shared_from_this() );
@@ -98,9 +96,14 @@ class session : public client, public std::enable_shared_from_this<session> {
     void write() {
         auto self( shared_from_this() );
         boost::asio::async_write(
-            _socket, boost::asio::buffer( _buffer, 4096 ),
-            [this, self]( boost::system::error_code ec ) {
+            _socket, boost::asio::buffer( send_queue.front().data(),
+                                          send_queue.front().length() ),
+            [this, self]( boost::system::error_code ec, std::size_t ) {
                 if ( !ec ) {
+                    send_queue.pop_front();
+                    if ( !send_queue.empty() ) {
+                        write();
+                    }
                 } else {
                     _server->apply( "client_leave", shared_from_this(), "" );
                     _server->leave( shared_from_this() );
@@ -110,6 +113,8 @@ class session : public client, public std::enable_shared_from_this<session> {
 
     tcp::socket _socket;
     server_ptr  _server;
+
+    deque<string> send_queue;
 };
 
 class Server : public _Server, public std::enable_shared_from_this<Server> {
