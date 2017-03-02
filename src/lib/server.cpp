@@ -132,13 +132,15 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
                   << "8888" << std::endl;
     };
 
-    // broadcast, Mingze
     void broadcast(const string& message,
                    std::function<bool(client_ptr)> filter) {
-        (void)filter;
+        for (auto it = _clients.begin(); it != _clients.end(); ++it) {
+            if (filter(*it)) (*it)->send(message);
+        }
     };
 
-    server->broadcast([](client_ptr) { return client_ptr->role == terminal; });
+    // server->broadcast([](client_ptr) { return client_ptr->role == terminal;
+    // });
 
     void on(const string& event,
             std::function<void(const string&, client_ptr, server_ptr)> fn) {
@@ -154,7 +156,7 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
     };
 
     void leave(client_ptr) {
-        std::set<client_ptr>::iterator it = _clients.find(client_ptr);
+        auto it = _clients.find(client_ptr);
         _clients.erase(it);
     }
 
