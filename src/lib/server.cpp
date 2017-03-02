@@ -98,7 +98,7 @@ class session : public client, public std::enable_shared_from_this<session> {
         auto self( shared_from_this() );
         boost::asio::async_write(_socket,
          boost::asio::buffer(_buffer, 4096),
-         [this,self](boost::system::error_code ec){
+         [this,self](boost::system::error_code ec, std::size_t bytes_transferred){
                 if (!ec){
 
 
