@@ -1,5 +1,10 @@
 #include "aincrad.h"
 
+#include <boost/asio.hpp>
+#include "lib/server.cpp"
+
+using boost::asio::ip::tcp;
+
 namespace aincrad {};
 
 namespace opts {
@@ -17,10 +22,10 @@ int main( int argc, char* argv[] ) {
 #endif
 
     /* parser arguments */
-    arguments   _arg;
+    arguments _arg;
     if ( !_arg.process_arguments( argc, argv ) ) return ( EXIT_FAILURE );
 
-    cout << colorize::make_color(colorize::LIGHT_BLUE, AINCRAD) << endl;
+    cout << colorize::make_color( colorize::LIGHT_BLUE, AINCRAD ) << endl;
 
     /* check environment */
     config _conf_remote;
@@ -29,6 +34,21 @@ int main( int argc, char* argv[] ) {
         exit_with_error( "Cannot find config file" );
     }
 
-    cout << "basic/role = " << _conf_remote.value("basic", "role") << endl;
+    cout << "basic/role = " << _conf_remote.value( "basic", "role" ) << endl;
 
+    try {
+        boost::asio::io_service io_service;
+        tcp::endpoint           endpoint( tcp::v4(), std::atoi( "8888" ) );
+        io_service.run();
+        auto server = new network::Server( io_service, endpoint );
+        server->start();
+    } catch ( std::exception& e ) {
+        std::cerr << "Exception: " << e.what() << "\n";
+    }
+
+
+    while ( 1 )
+        ;
+
+    return 0;
 }
