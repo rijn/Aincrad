@@ -34,7 +34,7 @@ bool config::read_config( const std::string& folder_filename ) {
 #ifdef DEBUG
     cout << "[" << __func__ << "] " << "read config " << filename << endl;
 #endif
-    std::ifstream file( filename.c_str() );
+    std::ifstream file( filename );
     if ( !file.good() ) return false;
     std::string line;
     std::string name;
