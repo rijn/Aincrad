@@ -50,7 +50,7 @@ class session : public client, public std::enable_shared_from_this<session> {
     session( session&& ) noexcept        = delete;
     session& operator=( session&& ) noexcept = delete;
 
-    session( tcp::socket socket, server_ptr server )
+    session( tcp::socket&& socket, server_ptr server )
         : _socket( std::move( socket ) ), _server( server ){};
     ~session(){};
 
@@ -140,14 +140,14 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
         std::cout << "Server is listening on "
                   << "8888" << std::endl;
-    };
+    }
 
     void broadcast( const Package&                    message,
                     std::function<bool( client_ptr )> filter ) {
-        for ( auto it = _clients.begin(); it != _clients.end(); ++it ) {
-            if ( filter( *it ) ) ( *it )->send( message );
-        }
-    };
+        for (const auto& client : _clients)
+            if(filter(client))
+                client -> send(message);
+    }
 
     // server->broadcast([](client_ptr) { return client_ptr->role == terminal;
     // });
@@ -158,12 +158,12 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
     };
 
     void apply( const string& event, client_ptr session, const string& msg ) {
-        for ( auto e : _el ) {
+        for ( const auto& e : _el ) {
             if ( e.first == event ) {
                 ( e.second )( msg, session, shared_from_this() );
             }
         }
-    };
+    }
 
     void leave( client_ptr cptr ) {
         auto it = _clients.find( cptr );
