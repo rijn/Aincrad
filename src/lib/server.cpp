@@ -37,8 +37,8 @@ class _Server {
    public:
     virtual ~_Server(){};
     virtual void leave( client_ptr ) = 0;
-    virtual void apply( const string& event, client_ptr,
-                        const string& msg ) = 0;
+    virtual void apply( const string&  event, client_ptr,
+                        const Package* msg ) = 0;
 };
 
 typedef std::shared_ptr<_Server> server_ptr;
@@ -50,7 +50,7 @@ class session : public client, public std::enable_shared_from_this<session> {
     session( session&& ) noexcept        = delete;
     session& operator=( session&& ) noexcept = delete;
 
-    session( tcp::socket&& socket, server_ptr server )
+    session( tcp::socket socket, server_ptr server )
         : _socket( std::move( socket ) ), _server( server ){};
     ~session(){};
 
@@ -63,37 +63,26 @@ class session : public client, public std::enable_shared_from_this<session> {
         if ( !write_in_progress ) {
             write();
         }
-        /*
-         *auto self( shared_from_this() );
-         *(void)message;
-         *char* buffer = NULL;
-         *boost::asio::async_write(
-         *    _socket, boost::asio::buffer( buffer, 0 ),
-         *    [this, self]( boost::system::error_code ec,
-         *                  std::size_t [>length<] ) {
-         *        if ( !ec ) {
-         *            _server->apply( "send_finish", shared_from_this(), "" );
-         *        } else {
-         *            _server->apply( "client_leave", shared_from_this(), "" );
-         *            _server->leave( shared_from_this() );
-         *        }
-         *    } );
-         */
     };
 
    private:
     void read() {
-        char _buffer[4096];
         auto self( shared_from_this() );
         boost::asio::async_read(
-            _socket, buffer( _buffer, 4096 ),
+            _socket, boost::asio::buffer( _buffer, 4096 ),
             [this, self]( boost::system::error_code ec, std::size_t len ) {
                 (void)len;
                 if ( !ec ) {
-                    // extract info
+                    // concat buffer
+                    buffer = (char*)realloc( buffer, size + len );
+                    memcpy( buffer + size, _buffer, len );
+
+                    // decrypt buffer
+                    analyze_buffer();
+
                     read();
                 } else {
-                    _server->apply( "client_leave", shared_from_this(), "" );
+                    _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
                 }
             } );
@@ -111,16 +100,41 @@ class session : public client, public std::enable_shared_from_this<session> {
                         write();
                     }
                 } else {
-                    _server->apply( "client_leave", shared_from_this(), "" );
+                    _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
                 }
             } );
+    };
+
+    void analyze_buffer() {
+        auto   temp  = new Package();
+        size_t _size = 0;
+        if ( ( _size = temp->decrypt( buffer ) ) == 0 ) {
+            delete temp;
+            return;
+        }
+
+        _server->apply( "recv_package", shared_from_this(), temp );
+        delete temp;
+
+        // remove front _size char from buffer
+        char* new_buffer = (char*)malloc( size - _size );
+        memcpy( new_buffer, buffer + _size, size - _size );
+        std::swap( new_buffer, buffer );
+        delete new_buffer;
+
+        analyze_buffer();
     };
 
     tcp::socket _socket;
     server_ptr  _server;
 
     deque<Package> send_queue;
+
+    char _buffer[4096];
+
+    char*  buffer;
+    size_t size;
 };
 
 class Server : public _Server, public std::enable_shared_from_this<Server> {
@@ -140,30 +154,31 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
         std::cout << "Server is listening on "
                   << "8888" << std::endl;
-    }
+    };
 
     void broadcast( const Package&                    message,
                     std::function<bool( client_ptr )> filter ) {
-        for (const auto& client : _clients)
-            if(filter(client))
-                client -> send(message);
-    }
+        for ( auto it = _clients.begin(); it != _clients.end(); ++it ) {
+            if ( filter( *it ) ) ( *it )->send( message );
+        }
+    };
 
     // server->broadcast([](client_ptr) { return client_ptr->role == terminal;
     // });
 
-    void on( const string& event,
-             std::function<void( const string&, client_ptr, server_ptr )> fn ) {
+    void on(
+        const string& event,
+        std::function<void( const Package*, client_ptr, server_ptr )> fn ) {
         _el.push_back( make_pair( event, fn ) );
     };
 
-    void apply( const string& event, client_ptr session, const string& msg ) {
-        for ( const auto& e : _el ) {
+    void apply( const string& event, client_ptr session, const Package* msg ) {
+        for ( auto e : _el ) {
             if ( e.first == event ) {
                 ( e.second )( msg, session, shared_from_this() );
             }
         }
-    }
+    };
 
     void leave( client_ptr cptr ) {
         auto it = _clients.find( cptr );
@@ -190,8 +205,8 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
     std::set<client_ptr> _clients;
 
-    vector<pair<const string&,
-                std::function<void( const string&, client_ptr, server_ptr )> > >
+    vector<pair<const string&, std::function<void( const Package*, client_ptr,
+                                                   server_ptr )> > >
         _el;
 };
 }
