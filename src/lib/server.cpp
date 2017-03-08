@@ -28,7 +28,7 @@ using network::Package;
 class client {
    public:
     virtual ~client(){};
-    virtual void send( const string& message ) = 0;
+    virtual void send( const Package& message ) = 0;
 };
 
 typedef std::shared_ptr<client> client_ptr;
@@ -57,22 +57,28 @@ class session : public client, public std::enable_shared_from_this<session> {
     void start(){};
 
     // send message to this session
-    void send( const string& message ) {
-        auto self( shared_from_this() );
-        // compress data into buffer
-        (void)message;
-        char* buffer = NULL;
-        boost::asio::async_write(
-            _socket, boost::asio::buffer( buffer, 0 ),
-            [this, self]( boost::system::error_code ec,
-                          std::size_t /*length*/ ) {
-                if ( !ec ) {
-                    _server->apply( "send_finish", shared_from_this(), "" );
-                } else {
-                    _server->apply( "client_leave", shared_from_this(), "" );
-                    _server->leave( shared_from_this() );
-                }
-            } );
+    void send( const Package& package ) {
+        bool write_in_progress = !send_queue.empty();
+        send_queue.push_back( package );
+        if ( !write_in_progress ) {
+            write();
+        }
+        /*
+         *auto self( shared_from_this() );
+         *(void)message;
+         *char* buffer = NULL;
+         *boost::asio::async_write(
+         *    _socket, boost::asio::buffer( buffer, 0 ),
+         *    [this, self]( boost::system::error_code ec,
+         *                  std::size_t [>length<] ) {
+         *        if ( !ec ) {
+         *            _server->apply( "send_finish", shared_from_this(), "" );
+         *        } else {
+         *            _server->apply( "client_leave", shared_from_this(), "" );
+         *            _server->leave( shared_from_this() );
+         *        }
+         *    } );
+         */
     };
 
    private:
@@ -96,7 +102,7 @@ class session : public client, public std::enable_shared_from_this<session> {
     void write() {
         auto self( shared_from_this() );
         boost::asio::async_write(
-            _socket, boost::asio::buffer( send_queue.front().data(),
+            _socket, boost::asio::buffer( send_queue.front().encrypt().data(),
                                           send_queue.front().length() ),
             [this, self]( boost::system::error_code ec, std::size_t ) {
                 if ( !ec ) {
@@ -114,7 +120,7 @@ class session : public client, public std::enable_shared_from_this<session> {
     tcp::socket _socket;
     server_ptr  _server;
 
-    deque<string> send_queue;
+    deque<Package> send_queue;
 };
 
 class Server : public _Server, public std::enable_shared_from_this<Server> {
@@ -136,7 +142,7 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
                   << "8888" << std::endl;
     };
 
-    void broadcast( const string&                     message,
+    void broadcast( const Package&                    message,
                     std::function<bool( client_ptr )> filter ) {
         for ( auto it = _clients.begin(); it != _clients.end(); ++it ) {
             if ( filter( *it ) ) ( *it )->send( message );
