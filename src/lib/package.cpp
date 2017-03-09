@@ -21,25 +21,19 @@ Package::~Package(){};
     * _buffer: the buffer received
     * _size: the size of the received buffer
     */
-
-
     size_t Package::decrypt( char* _buffer, size_t _size ) {
-        (void)_buffer;
         int head_tag_size = sizeof(PACKAGE_HEADER) + 4;
         if (size < head_tag_size){
-        	return 0;
+        	cout << "No content" << endl;
+            return 0;
         }
-        
         int package_size = *(int*)(buffer + sizeof(PACKAGE_HEADER)); // get the size of package
-
-
-
-        return 0; // buffer size
+        char* package_start = buffer + head_tag_size;
+        content.copy(package_start, package_size, 0);
+        return (size_t)(package_size + head_tag_size); // buffer size
     };
 
     
-
-
     Package& Package::encrypt() {
         return *shared_from_this();
     };
