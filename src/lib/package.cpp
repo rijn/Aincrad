@@ -1,41 +1,33 @@
 #include <string>
 #include <vector>
 
+#include "package.hpp"
+
 #define PACKAGE_HEADER "AINCRAD_PACKAGE"
 
 namespace network {
 
-using std::string;
+Package::Package() : content( NULL ), size( 0 ), buffer( NULL ){};
 
-class Package : public std::enable_shared_from_this<Package> {
-   public:
-    Package() : content( NULL ), size( 0 ), buffer( NULL ){};
-
-    Package( string _content )
+Package::Package( string _content )
         : content( _content ), size( 0 ), buffer( NULL ){};
 
-    ~Package(){};
+Package::~Package(){};
 
-    size_t decrypt( char* buffer ) {
+    size_t Package::decrypt( char* buffer ) {
         (void)buffer;
         return 0;
     };
 
-    Package& encrypt() {
+    Package& Package::encrypt() {
         return *shared_from_this();
     };
 
-    char* data() {
+    char* Package::data() {
         return buffer;
     };
 
-    size_t length() {
+    size_t Package::length() {
         return size;
     }
-
-   private:
-    string content;
-    size_t size;
-    char*  buffer;
-};
 }
