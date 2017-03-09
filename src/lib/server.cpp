@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "package.cpp"
+#include "package.hpp"
 
 namespace network {
 

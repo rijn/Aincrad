@@ -53,7 +53,7 @@ struct Arg : public option::Arg {
         return option::ARG_ILLEGAL;
     }
 };
-enum optionIndex { UNKNOWN, HELP, CONF };
+enum optionIndex { UNKNOWN, HELP, CONF, ROLE };
 const option::Descriptor usage[] = {{UNKNOWN, 0, "", "", Arg::Unknown,
                                      "USAGE: aincrad id [options]\n\n"
                                      "Options:"},
@@ -61,6 +61,8 @@ const option::Descriptor usage[] = {{UNKNOWN, 0, "", "", Arg::Unknown,
                                      "  --help -h \tPrint usage and exit."},
                                     {CONF, 0, "c", "config", Arg::Required,
                                      "  --config -c \tSpecify config file."},
+                                    {ROLE, 0, "r", "role", Arg::Required,
+                                     "  --role -r \tSpecify role."},
                                     {0, 0, 0, 0, 0, 0}};
 
 bool arguments::process_arguments( int& argc, char**& argv ) {
@@ -98,6 +100,9 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
                           << endl;
                 content_["config_file"] = opt.arg;
                 break;
+            case ROLE:
+                content_["role"] = opt.arg;
+                break;
             case UNKNOWN:
                 break;
         }
@@ -105,6 +110,7 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
 
     return true;
 };
+
 std::string const& arguments::value( std::string const& entry ) const {
     std::map<std::string, std::string>::const_iterator ci =
         content_.find( entry );
