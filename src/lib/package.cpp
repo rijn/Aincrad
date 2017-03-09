@@ -27,13 +27,15 @@ Package::~Package() {
 
 size_t Package::decrypt( char* _buffer, size_t _size ) {
     (void)_buffer;
-    int head_tag_size = sizeof( PACKAGE_HEADER ) + 4;
+    size_t header_size   = sizeof( PACKAGE_HEADER ) - 1;  // remove the last nul
+    size_t int_size      = sizeof( int );
+    int    head_tag_size = (int)( header_size + int_size );
     if ( size < head_tag_size ) {
         return 0;
     }
 
-    int package_size = *(
-        int*)( buffer + sizeof( PACKAGE_HEADER ) );  // get the size of package
+    int package_size =
+        *(int*)( buffer + header_size );  // get the size of package
     char* package_start = buffer + head_tag_size;
 
     content.copy( package_start, package_size, 0 );
@@ -45,13 +47,15 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
 // encrypt the content as the above format
 
 Package& Package::encrypt() {
-    buffer = (char*)malloc( 15 + 4 + content.length() );
-    strncpy( buffer, PACKAGE_HEADER, 15 );
+    size_t header_size = sizeof( PACKAGE_HEADER ) - 1;
+    size_t int_size    = sizeof( int );
+    buffer = (char*)malloc( header_size + int_size + content.length() );
+    strncpy( buffer, PACKAGE_HEADER, header_size );
 
-    int* size_begin = (int*)( (char*)buffer + 15 );
+    int* size_begin = (int*)( (char*)buffer + header_size );
     *size_begin     = (int)size;
 
-    buffer[19] = '\0';
+    buffer[header_size + int_size] = '\0';
     strncat( buffer, content, content.length() );
 
     return *shared_from_this();
