@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,9 @@ Package::Package() : content( NULL ), size( 0 ), buffer( NULL ){};
 Package::Package( string _content )
     : content( _content ), size( 0 ), buffer( NULL ){};
 
-Package::~Package(){};
+Package::~Package() {
+    if ( buffer ) free( buffer );
+};
 
 // HEADER | SIZE(4 bytes) | CONTENT
 /*
@@ -29,15 +32,28 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
         return 0;
     }
 
-    int package_size = *(int*)(buffer + sizeof(PACKAGE_HEADER)); // get the size of package
+    int package_size = *(
+        int*)( buffer + sizeof( PACKAGE_HEADER ) );  // get the size of package
     char* package_start = buffer + head_tag_size;
-    
-    content.copy(package_start, package_size, 0);
-    
-    return (size_t)(package_size + head_tag_size); // buffer size
+
+    content.copy( package_start, package_size, 0 );
+
+    return ( size_t )( package_size + head_tag_size );  // buffer size
 };
 
+// HEADER | SIZE(4 bytes) | CONTENT
+// encrypt the content as the above format
+
 Package& Package::encrypt() {
+    buffer = malloc( 15 + 4 + content.length() );
+    strncpy( buffer, PACKAGE_HEADER, 15 );
+
+    int* size_begin = (int*)( (char*)buffer + 15 );
+    *size_begin     = (int)size;
+
+    buffer[19] = '\0';
+    strncat( buffer, content, content.length() );
+
     return *shared_from_this();
 };
 
@@ -48,9 +64,4 @@ char* Package::data() {
 size_t Package::length() {
     return size;
 }
-
-private:
-string content;
-size_t size;  // buffer size
-char*  buffer;
 };
