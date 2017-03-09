@@ -45,7 +45,7 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
 // encrypt the content as the above format
 
 Package& Package::encrypt() {
-    buffer = malloc( 15 + 4 + content.length() );
+    buffer = (char*)malloc( 15 + 4 + content.length() );
     strncpy( buffer, PACKAGE_HEADER, 15 );
 
     int* size_begin = (int*)( (char*)buffer + 15 );
