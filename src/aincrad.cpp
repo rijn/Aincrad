@@ -15,7 +15,9 @@ bool svn = true;
 
 int main( int argc, char* argv[] ) {
     /* error handler */
-    std::set_terminate( error_handler );
+    /*
+     *std::set_terminate( error_handler );
+     */
 
     /* getting workpath */
     std::string working_path = get_working_path();
@@ -48,6 +50,7 @@ int main( int argc, char* argv[] ) {
             io_service.run();
             auto server = new network::Server( io_service, endpoint );
             server->start();
+
         } catch ( std::exception& e ) {
             std::cerr << "Exception: " << e.what() << "\n";
         }
@@ -58,19 +61,16 @@ int main( int argc, char* argv[] ) {
         string port = _conf_remote.value( "server", "port" );
         cout << "Server " << addr << ":" << port << endl;
 
-        try {
-            if ( argc != 3 ) {
-                std::cerr << "Usage: chat_client <host> <port>\n";
-                return 1;
-            }
-
+        /*
+         *try {
+         */
             boost::asio::io_service io_service;
 
             tcp::resolver resolver( io_service );
             auto          endpoint_iterator = resolver.resolve( {addr, port} );
-            network::Client c( io_service, endpoint_iterator );
+            auto c = new network::Client( io_service, endpoint_iterator );
 
-            std::thread t( [&io_service]() { io_service.run(); } );
+            auto t = new std::thread( [&io_service]() { io_service.run(); } );
 
             /*
              *char line[chat_message::max_body_length + 1];
@@ -85,15 +85,21 @@ int main( int argc, char* argv[] ) {
              *}
              */
 
-            c.send( *(new network::Package( "test" ) ));
+            auto p = new network::Package("test");
+
+            sleep(1);
+
+            c->send( *p );
 
             sleep(5);
 
-            c.close();
-            t.join();
-        } catch ( std::exception& e ) {
-            std::cerr << "Exception: " << e.what() << "\n";
-        }
+            c->close();
+            t->join();
+        /*
+         *} catch ( std::exception& e ) {
+         *    std::cerr << "Exception: " << e.what() << "\n";
+         *}
+         */
     }
 
     while ( 1 ) sleep( 1 );

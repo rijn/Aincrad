@@ -25,7 +25,10 @@ using boost::asio::buffer;
 
 using network::Package;
 
-class Client : public std::enable_shared_from_this<Client> {
+class Client {
+    /*
+     *: public std::enable_shared_from_this<Client> {
+     */
    public:
     Client( const Client& ) = delete;
     Client& operator=( const Client& ) = delete;
@@ -47,6 +50,7 @@ class Client : public std::enable_shared_from_this<Client> {
     void send( const Package& msg ) {
         _io_service.post( [this, msg]() {
             bool write_in_progress = !send_queue.empty();
+            std::cout << "push queue" << std::endl;
             send_queue.push_back( msg );
             if ( !write_in_progress ) {
                 write();
@@ -63,7 +67,9 @@ class Client : public std::enable_shared_from_this<Client> {
     void apply( const string& event, const Package* msg ) {
         for ( auto e : _el ) {
             if ( e.first == event ) {
-                ( e.second )( msg, shared_from_this() );
+                /*
+                 *( e.second )( msg, shared_from_this() );
+                 */
             }
         }
     };
@@ -73,6 +79,7 @@ class Client : public std::enable_shared_from_this<Client> {
         boost::asio::async_connect(
             _socket, endpoint_iterator,
             [this]( boost::system::error_code ec, tcp::resolver::iterator ) {
+                std::cout << "connected" << std::endl;
                 if ( !ec ) {
                     read();
                 }
@@ -80,10 +87,9 @@ class Client : public std::enable_shared_from_this<Client> {
     }
 
     void read() {
-        auto self( shared_from_this() );
         boost::asio::async_read(
             _socket, boost::asio::buffer( _buffer, 4096 ),
-            [this, self]( boost::system::error_code ec, std::size_t len ) {
+            [this]( boost::system::error_code ec, std::size_t len ) {
                 (void)len;
                 if ( !ec ) {
                     // concat buffer
@@ -102,11 +108,13 @@ class Client : public std::enable_shared_from_this<Client> {
     };
 
     void write() {
-        auto self( shared_from_this() );
+        std::cout << "write" << std::endl;
+        std::cout.write( send_queue.front().data(),
+                         send_queue.front().length() );
         boost::asio::async_write(
-            _socket, boost::asio::buffer( send_queue.front().encrypt().data(),
+            _socket, boost::asio::buffer( send_queue.front().data(),
                                           send_queue.front().length() ),
-            [this, self]( boost::system::error_code ec, std::size_t ) {
+            [this]( boost::system::error_code ec, std::size_t ) {
                 if ( !ec ) {
                     send_queue.pop_front();
                     if ( !send_queue.empty() ) {

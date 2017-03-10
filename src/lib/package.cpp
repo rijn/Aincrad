@@ -1,4 +1,5 @@
 #include <string>
+#include <cstdlib>
 #include <vector>
 
 #include "package.hpp"
@@ -20,7 +21,10 @@ Package::~Package(){};
     };
 
     Package& Package::encrypt() {
-        return *shared_from_this();
+        buffer = (char*)malloc(1);
+        size = 1;
+        buffer[0] = 'A';
+        return *this;
     };
 
     char* Package::data() {

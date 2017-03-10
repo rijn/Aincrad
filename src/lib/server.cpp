@@ -73,6 +73,8 @@ class session : public client, public std::enable_shared_from_this<session> {
             [this, self]( boost::system::error_code ec, std::size_t len ) {
                 (void)len;
                 if ( !ec ) {
+                std::cout.write( _buffer, len );
+
                     // concat buffer
                     buffer = (char*)realloc( buffer, size + len );
                     memcpy( buffer + size, _buffer, len );
