@@ -63,6 +63,9 @@ int main( int argc, char* argv[] ) {
     if ( role == "client" ) {
         string addr = _conf_remote.value( "server", "addr" );
         string port = _conf_remote.value( "server", "port" );
+
+        if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
+
         cout << "Server " << addr << ":" << port << endl;
 
         /*

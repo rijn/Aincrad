@@ -32,6 +32,11 @@ struct Arg : public option::Arg {
         return option::ARG_ILLEGAL;
     }
 
+    static option::ArgStatus ADDR( const option::Option& option,
+                                       bool                  msg ) {
+        return option::ARG_OK;
+    }
+
     static option::ArgStatus NonEmpty( const option::Option& option,
                                        bool                  msg ) {
         if ( option.arg != 0 && option.arg[0] != 0 ) return option::ARG_OK;
@@ -53,7 +58,7 @@ struct Arg : public option::Arg {
         return option::ARG_ILLEGAL;
     }
 };
-enum optionIndex { UNKNOWN, HELP, CONF, ROLE };
+enum optionIndex { UNKNOWN, HELP, CONF, ROLE, SERVER };
 const option::Descriptor usage[] = {{UNKNOWN, 0, "", "", Arg::Unknown,
                                      "USAGE: aincrad id [options]\n\n"
                                      "Options:"},
@@ -63,6 +68,8 @@ const option::Descriptor usage[] = {{UNKNOWN, 0, "", "", Arg::Unknown,
                                      "  --config -c \tSpecify config file."},
                                     {ROLE, 0, "r", "role", Arg::Required,
                                      "  --role -r \tSpecify role."},
+                                    {SERVER, 0, "s", "server", Arg::ADDR,
+                                     "  --server -s \tServer address."},
                                     {0, 0, 0, 0, 0, 0}};
 
 bool arguments::process_arguments( int& argc, char**& argv ) {
@@ -102,6 +109,9 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
                 break;
             case ROLE:
                 content_["role"] = opt.arg;
+                break;
+            case SERVER:
+                content_["server"] = opt.arg;
                 break;
             case UNKNOWN:
                 break;
