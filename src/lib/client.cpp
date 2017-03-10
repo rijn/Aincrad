@@ -80,6 +80,9 @@ class Client {
             [this]( boost::system::error_code ec, tcp::resolver::iterator ) {
                 if ( !ec ) {
                     read_body();
+                } else {
+                    std::cout << "\nError: " << ec.message() << "\n";
+                    exit( 1 );
                 }
             } );
     }
@@ -148,39 +151,39 @@ class Client {
             } );
     };
 
-/*
- *    void analyze_buffer() {
- *        auto   temp  = new Package();
- *        size_t _size = 0;
- *        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
- *            delete temp;
- *            return;
- *        }
- *
- *        apply( "recv_package", temp );
- *        delete temp;
- *
- *        // remove front _size char from buffer
- *        char* new_buffer = (char*)malloc( size - _size );
- *        memcpy( new_buffer, buffer + _size, size - _size );
- *        std::swap( new_buffer, buffer );
- *        delete new_buffer;
- *
- *        analyze_buffer();
- *    };
- */
+    /*
+     *    void analyze_buffer() {
+     *        auto   temp  = new Package();
+     *        size_t _size = 0;
+     *        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
+     *            delete temp;
+     *            return;
+     *        }
+     *
+     *        apply( "recv_package", temp );
+     *        delete temp;
+     *
+     *        // remove front _size char from buffer
+     *        char* new_buffer = (char*)malloc( size - _size );
+     *        memcpy( new_buffer, buffer + _size, size - _size );
+     *        std::swap( new_buffer, buffer );
+     *        delete new_buffer;
+     *
+     *        analyze_buffer();
+     *    };
+     */
 
     boost::asio::io_service& _io_service;
     tcp::socket              _socket;
 
     deque<Package> send_queue;
 
-/*
- *    char _buffer[4096];
- *
- *    char*  buffer;
- *    size_t size;
- */
+    /*
+     *    char _buffer[4096];
+     *
+     *    char*  buffer;
+     *    size_t size;
+     */
 
     vector<
         pair<const string&,
