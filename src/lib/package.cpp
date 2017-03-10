@@ -47,19 +47,19 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
 // HEADER | SIZE(4 bytes) | CONTENT
 // encrypt the content as the above format
 
-Package& Package::encrypt() {
+void Package::encrypt() {
     size_t header_size = sizeof( PACKAGE_HEADER ) - 1;
     size_t int_size    = sizeof( int );
-    buffer = (char*)malloc( header_size + int_size + content.length() );
+    size = header_size + int_size + content.length();
+    buffer = (char*)realloc(buffer, size);
     strncpy( buffer, PACKAGE_HEADER, header_size );
 
     int* size_begin = (int*)( (char*)buffer + header_size );
-    *size_begin     = (int)size;
+    *size_begin     = (int)content.length();
 
     buffer[header_size + int_size] = '\0';
     strncat( buffer, content.c_str(), content.length() );
 
-    return *shared_from_this();
 };
 
 char* Package::data() {

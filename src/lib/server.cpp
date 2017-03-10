@@ -54,7 +54,10 @@ class session : public client, public std::enable_shared_from_this<session> {
         : _socket( std::move( socket ) ), _server( server ){};
     ~session(){};
 
-    void start(){};
+    void start(){
+        std::cout << "new session" << std::endl;
+        read();
+    };
 
     // send message to this session
     void send( const Package& package ) {
@@ -67,11 +70,12 @@ class session : public client, public std::enable_shared_from_this<session> {
 
    private:
     void read() {
+        std::cout << "reading... ";
         auto self( shared_from_this() );
         boost::asio::async_read(
             _socket, boost::asio::buffer( _buffer, 4096 ),
             [this, self]( boost::system::error_code ec, std::size_t len ) {
-                (void)len;
+                std::cout << "recv " << len << " bytes." << std::endl;
                 if ( !ec ) {
                 std::cout.write( _buffer, len );
 
@@ -92,8 +96,9 @@ class session : public client, public std::enable_shared_from_this<session> {
 
     void write() {
         auto self( shared_from_this() );
+        send_queue.front().encrypt();
         boost::asio::async_write(
-            _socket, boost::asio::buffer( send_queue.front().encrypt().data(),
+            _socket, boost::asio::buffer( send_queue.front().data(),
                                           send_queue.front().length() ),
             [this, self]( boost::system::error_code ec, std::size_t ) {
                 if ( !ec ) {
@@ -189,9 +194,11 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
    private:
     void accept() {
+        std::cout << "waiting... ";
         _acceptor.async_accept(
             _socket, [this]( boost::system::error_code ec ) {
                 if ( !ec ) {
+                    std::cout << "accept" << std::endl;
                     auto ptr = std::make_shared<session>( std::move( _socket ),
                                                           shared_from_this() );
                     _clients.insert( ptr );

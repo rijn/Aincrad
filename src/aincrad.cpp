@@ -47,10 +47,13 @@ int main( int argc, char* argv[] ) {
         try {
             boost::asio::io_service io_service;
             tcp::endpoint           endpoint( tcp::v4(), std::atoi( "8888" ) );
-            io_service.run();
-            auto server = new network::Server( io_service, endpoint );
-            server->start();
+            auto s = std::make_shared<network::Server>( io_service, endpoint );
+            /*
+             *auto s = new network::Server( io_service, endpoint );
+             */
+            s->start();
 
+            io_service.run();
         } catch ( std::exception& e ) {
             std::cerr << "Exception: " << e.what() << "\n";
         }
@@ -64,37 +67,39 @@ int main( int argc, char* argv[] ) {
         /*
          *try {
          */
-            boost::asio::io_service io_service;
+        boost::asio::io_service io_service;
 
-            tcp::resolver resolver( io_service );
-            auto          endpoint_iterator = resolver.resolve( {addr, port} );
-            auto c = new network::Client( io_service, endpoint_iterator );
+        tcp::resolver   resolver( io_service );
+        auto            endpoint_iterator = resolver.resolve( {addr, port} );
+        network::Client c( io_service, endpoint_iterator );
 
-            auto t = new std::thread( [&io_service]() { io_service.run(); } );
+        std::thread t( [&io_service]() { io_service.run(); } );
 
-            /*
-             *char line[chat_message::max_body_length + 1];
-             *while (
-             *    std::cin.getline( line, chat_message::max_body_length + 1 ) )
-             *{
-             *    chat_message msg;
-             *    msg.body_length( std::strlen( line ) );
-             *    std::memcpy( msg.body(), line, msg.body_length() );
-             *    msg.encode_header();
-             *    c.write( msg );
-             *}
-             */
+        /*
+         *char line[chat_message::max_body_length + 1];
+         *while (
+         *    std::cin.getline( line, chat_message::max_body_length + 1 ) )
+         *{
+         *    chat_message msg;
+         *    msg.body_length( std::strlen( line ) );
+         *    std::memcpy( msg.body(), line, msg.body_length() );
+         *    msg.encode_header();
+         *    c.write( msg );
+         *}
+         */
 
-            auto p = new network::Package("test");
+        network::Package p( "test" );
 
-            sleep(1);
+        while ( 1 ) {
+            sleep( 1 );
 
-            c->send( *p );
+            c.send( p );
+        }
 
-            sleep(5);
+        sleep( 5 );
 
-            c->close();
-            t->join();
+        c.close();
+        t.join();
         /*
          *} catch ( std::exception& e ) {
          *    std::cerr << "Exception: " << e.what() << "\n";

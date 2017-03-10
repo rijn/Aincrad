@@ -79,7 +79,6 @@ class Client {
         boost::asio::async_connect(
             _socket, endpoint_iterator,
             [this]( boost::system::error_code ec, tcp::resolver::iterator ) {
-                std::cout << "connected" << std::endl;
                 if ( !ec ) {
                     read();
                 }
@@ -109,8 +108,7 @@ class Client {
 
     void write() {
         std::cout << "write" << std::endl;
-        std::cout.write( send_queue.front().data(),
-                         send_queue.front().length() );
+        send_queue.front().encrypt();
         boost::asio::async_write(
             _socket, boost::asio::buffer( send_queue.front().data(),
                                           send_queue.front().length() ),
