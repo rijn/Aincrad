@@ -15,10 +15,10 @@ class Package : public std::enable_shared_from_this<Package> {
     Package( string _content );
     ~Package();
 
-    size_t decrypt( char* buffer );
+    size_t decrypt( char* buffer, size_t size );
     Package& encrypt();
-    char* data();
-    size_t length();
+    char*    data();
+    size_t   length();
 
    private:
     string content;

@@ -130,7 +130,7 @@ class Client {
     void analyze_buffer() {
         auto   temp  = new Package();
         size_t _size = 0;
-        if ( ( _size = temp->decrypt( buffer ) ) == 0 ) {
+        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
             delete temp;
             return;
         }
