@@ -58,7 +58,7 @@ class session : public client, public std::enable_shared_from_this<session> {
     void start() {
         client_s =
             boost::lexical_cast<std::string>( _socket.remote_endpoint() );
-        std::cout << "new session " << client_s << std::endl;
+        prompt( "connect" );
         read_header();
     };
 
@@ -72,6 +72,10 @@ class session : public client, public std::enable_shared_from_this<session> {
     };
 
    private:
+    void prompt( const string& msg ) {
+        std::cout << "[" << client_s << "] " << msg << std::endl;
+    }
+
     void read_header() {
         boost::asio::async_read(
             _socket, boost::asio::buffer(
@@ -81,6 +85,7 @@ class session : public client, public std::enable_shared_from_this<session> {
                 if ( !ec && recv_package.decrypt() ) {
                     read_body();
                 } else {
+                    prompt( "leave" );
                     _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
                 }
@@ -93,8 +98,7 @@ class session : public client, public std::enable_shared_from_this<session> {
             _socket, boost::asio::buffer( recv_package.body(),
                                           recv_package.body_length() ),
             [this, self]( boost::system::error_code ec, std::size_t len ) {
-                std::cout << "[" << client_s << "] "
-                          << "recv " << len << " bytes." << std::endl;
+                prompt( "recv " + std::to_string( len ) + " bytes." );
                 if ( !ec ) {
                     /*
                      *                    // concat buffer
@@ -108,6 +112,7 @@ class session : public client, public std::enable_shared_from_this<session> {
 
                     read_header();
                 } else {
+                    prompt( "leave" );
                     _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
                 }
@@ -127,6 +132,7 @@ class session : public client, public std::enable_shared_from_this<session> {
                         write();
                     }
                 } else {
+                    prompt( "leave" );
                     _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
                 }
@@ -218,6 +224,8 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
     void leave( client_ptr cptr ) {
         auto it = _clients.find( cptr );
         _clients.erase( it );
+
+        std::cout << "[server] client = " << _clients.size() << std::endl;
     }
 
    private:
@@ -228,6 +236,8 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
                     auto ptr = std::make_shared<session>( std::move( _socket ),
                                                           shared_from_this() );
                     _clients.insert( ptr );
+                    std::cout << "[server] client = " << _clients.size()
+                              << std::endl;
                     ptr->start();
                 }
 
