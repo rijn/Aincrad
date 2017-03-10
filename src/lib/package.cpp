@@ -1,3 +1,4 @@
+#if 0
 #include <stdlib.h>
 #include <cstdlib>
 #include <string>
@@ -6,6 +7,7 @@
 #include "package.hpp"
 
 #define PACKAGE_HEADER "AINCRAD_PACKAGE"
+#define SIZE_LEN 4
 
 namespace network {
 
@@ -50,8 +52,8 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
 void Package::encrypt() {
     size_t header_size = sizeof( PACKAGE_HEADER ) - 1;
     size_t int_size    = sizeof( int );
-    size = header_size + int_size + content.length();
-    buffer = (char*)realloc(buffer, size);
+    size               = header_size + int_size + content.length();
+    buffer             = (char*)realloc( buffer, size );
     strncpy( buffer, PACKAGE_HEADER, header_size );
 
     int* size_begin = (int*)( (char*)buffer + header_size );
@@ -59,7 +61,6 @@ void Package::encrypt() {
 
     buffer[header_size + int_size] = '\0';
     strncat( buffer, content.c_str(), content.length() );
-
 };
 
 char* Package::data() {
@@ -70,3 +71,4 @@ size_t Package::length() {
     return size;
 }
 };
+#endif

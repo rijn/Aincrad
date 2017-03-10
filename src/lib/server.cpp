@@ -54,9 +54,11 @@ class session : public client, public std::enable_shared_from_this<session> {
         : _socket( std::move( socket ) ), _server( server ){};
     ~session(){};
 
-    void start(){
-        std::cout << "new session" << std::endl;
-        read();
+    void start() {
+        std::cout << "new session "; 
+        std::cout << _socket.remote_endpoint().address().to_string();
+        std::cout << std::endl;
+        read_header();
     };
 
     // send message to this session
@@ -69,24 +71,41 @@ class session : public client, public std::enable_shared_from_this<session> {
     };
 
    private:
-    void read() {
-        std::cout << "reading... ";
+
+    void read_header() {
+        boost::asio::async_read(
+            _socket, boost::asio::buffer(
+                         recv_package.data(),
+                         Package::size_length + Package::header_length ),
+            [this]( boost::system::error_code ec, std::size_t /*length*/ ) {
+                if ( !ec && recv_package.decrypt() ) {
+                    read_body();
+                } else {
+                    _server->apply( "client_leave", shared_from_this(), NULL );
+                    _server->leave( shared_from_this() );
+                }
+            } );
+    }
+
+    void read_body() {
         auto self( shared_from_this() );
         boost::asio::async_read(
-            _socket, boost::asio::buffer( _buffer, 4096 ),
+            _socket, boost::asio::buffer( recv_package.body(),
+                                          recv_package.body_length() ),
             [this, self]( boost::system::error_code ec, std::size_t len ) {
                 std::cout << "recv " << len << " bytes." << std::endl;
                 if ( !ec ) {
-                std::cout.write( _buffer, len );
+                    /*
+                     *                    // concat buffer
+                     *                    buffer = (char*)realloc( buffer, size
+                     * + len );
+                     *                    memcpy( buffer + size, _buffer, len );
+                     *
+                     *                    // decrypt buffer
+                     *                    analyze_buffer();
+                     */
 
-                    // concat buffer
-                    buffer = (char*)realloc( buffer, size + len );
-                    memcpy( buffer + size, _buffer, len );
-
-                    // decrypt buffer
-                    analyze_buffer();
-
-                    read();
+                    read_header();
                 } else {
                     _server->apply( "client_leave", shared_from_this(), NULL );
                     _server->leave( shared_from_this() );
@@ -113,35 +132,41 @@ class session : public client, public std::enable_shared_from_this<session> {
             } );
     };
 
-    void analyze_buffer() {
-        auto   temp  = new Package();
-        size_t _size = 0;
-        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
-            delete temp;
-            return;
-        }
-
-        _server->apply( "recv_package", shared_from_this(), temp );
-        delete temp;
-
-        // remove front _size char from buffer
-        char* new_buffer = (char*)malloc( size - _size );
-        memcpy( new_buffer, buffer + _size, size - _size );
-        std::swap( new_buffer, buffer );
-        delete new_buffer;
-
-        analyze_buffer();
-    };
+    /*
+     *    void analyze_buffer() {
+     *        auto   temp  = new Package();
+     *        size_t _size = 0;
+     *        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
+     *            delete temp;
+     *            return;
+     *        }
+     *
+     *        _server->apply( "recv_package", shared_from_this(), temp );
+     *        delete temp;
+     *
+     *        // remove front _size char from buffer
+     *        char* new_buffer = (char*)malloc( size - _size );
+     *        memcpy( new_buffer, buffer + _size, size - _size );
+     *        std::swap( new_buffer, buffer );
+     *        delete new_buffer;
+     *
+     *        analyze_buffer();
+     *    };
+     */
 
     tcp::socket _socket;
     server_ptr  _server;
 
     deque<Package> send_queue;
 
-    char _buffer[4096];
+    /*
+     *    char _buffer[4096];
+     *
+     *    char*  buffer;
+     *    size_t size;
+     */
 
-    char*  buffer;
-    size_t size;
+    Package recv_package;
 };
 
 class Server : public _Server, public std::enable_shared_from_this<Server> {
@@ -194,11 +219,9 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 
    private:
     void accept() {
-        std::cout << "waiting... ";
         _acceptor.async_accept(
             _socket, [this]( boost::system::error_code ec ) {
                 if ( !ec ) {
-                    std::cout << "accept" << std::endl;
                     auto ptr = std::make_shared<session>( std::move( _socket ),
                                                           shared_from_this() );
                     _clients.insert( ptr );

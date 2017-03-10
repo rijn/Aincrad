@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <thread>
 #include "lib/client.cpp"
+#include "lib/package.hpp"
 #include "lib/server.cpp"
 
 using boost::asio::ip::tcp;
@@ -88,12 +89,14 @@ int main( int argc, char* argv[] ) {
          *}
          */
 
-        network::Package p( "test" );
-
-        while ( 1 ) {
-            sleep( 1 );
-
-            c.send( p );
+        char line[network::Package::max_body_length + 1];
+        while (
+            std::cin.getline( line, network::Package::max_body_length + 1 ) ) {
+            network::Package msg;
+            msg.body_length( std::strlen( line ) );
+            std::memcpy( msg.body(), line, msg.body_length() );
+            msg.encrypt();
+            c.send( msg );
         }
 
         sleep( 5 );

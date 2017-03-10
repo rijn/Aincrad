@@ -50,7 +50,6 @@ class Client {
     void send( const Package& msg ) {
         _io_service.post( [this, msg]() {
             bool write_in_progress = !send_queue.empty();
-            std::cout << "push queue" << std::endl;
             send_queue.push_back( msg );
             if ( !write_in_progress ) {
                 write();
@@ -80,25 +79,50 @@ class Client {
             _socket, endpoint_iterator,
             [this]( boost::system::error_code ec, tcp::resolver::iterator ) {
                 if ( !ec ) {
-                    read();
+                    read_body();
                 }
             } );
     }
 
-    void read() {
+    void read_header() {
         boost::asio::async_read(
-            _socket, boost::asio::buffer( _buffer, 4096 ),
+            _socket, boost::asio::buffer(
+                         recv_package.data(),
+                         Package::size_length + Package::header_length ),
+            [this]( boost::system::error_code ec, std::size_t /*length*/ ) {
+                if ( !ec && recv_package.decrypt() ) {
+                    read_body();
+                } else {
+                    close();
+                }
+            } );
+    }
+
+    void read_body() {
+        boost::asio::async_read(
+            /*
+             *_socket, boost::asio::buffer( _buffer, 4096 ),
+             */
+            _socket, boost::asio::buffer( recv_package.body(),
+                                          recv_package.body_length() ),
             [this]( boost::system::error_code ec, std::size_t len ) {
                 (void)len;
                 if ( !ec ) {
                     // concat buffer
-                    buffer = (char*)realloc( buffer, size + len );
-                    memcpy( buffer + size, _buffer, len );
+                    /*
+                     *buffer = (char*)realloc( buffer, size + len );
+                     *memcpy( buffer + size, _buffer, len );
+                     */
 
                     // decrypt buffer
-                    analyze_buffer();
+                    /*
+                     *analyze_buffer();
+                     */
 
-                    read();
+                    std::cout.write( recv_package.body(),
+                                     recv_package.body_length() );
+                    std::cout << "\n";
+                    read_header();
                 } else {
                     apply( "link_lost", NULL );
                     close();
@@ -107,7 +131,6 @@ class Client {
     };
 
     void write() {
-        std::cout << "write" << std::endl;
         send_queue.front().encrypt();
         boost::asio::async_write(
             _socket, boost::asio::buffer( send_queue.front().data(),
@@ -125,39 +148,45 @@ class Client {
             } );
     };
 
-    void analyze_buffer() {
-        auto   temp  = new Package();
-        size_t _size = 0;
-        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
-            delete temp;
-            return;
-        }
-
-        apply( "recv_package", temp );
-        delete temp;
-
-        // remove front _size char from buffer
-        char* new_buffer = (char*)malloc( size - _size );
-        memcpy( new_buffer, buffer + _size, size - _size );
-        std::swap( new_buffer, buffer );
-        delete new_buffer;
-
-        analyze_buffer();
-    };
+/*
+ *    void analyze_buffer() {
+ *        auto   temp  = new Package();
+ *        size_t _size = 0;
+ *        if ( ( _size = temp->decrypt( buffer, size ) ) == 0 ) {
+ *            delete temp;
+ *            return;
+ *        }
+ *
+ *        apply( "recv_package", temp );
+ *        delete temp;
+ *
+ *        // remove front _size char from buffer
+ *        char* new_buffer = (char*)malloc( size - _size );
+ *        memcpy( new_buffer, buffer + _size, size - _size );
+ *        std::swap( new_buffer, buffer );
+ *        delete new_buffer;
+ *
+ *        analyze_buffer();
+ *    };
+ */
 
     boost::asio::io_service& _io_service;
     tcp::socket              _socket;
 
     deque<Package> send_queue;
 
-    char _buffer[4096];
-
-    char*  buffer;
-    size_t size;
+/*
+ *    char _buffer[4096];
+ *
+ *    char*  buffer;
+ *    size_t size;
+ */
 
     vector<
         pair<const string&,
              std::function<void( const Package*, std::shared_ptr<Client> )> > >
         _el;
+
+    Package recv_package;
 };
 }
