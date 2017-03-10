@@ -46,7 +46,7 @@ endif
 
 .PHONY: release debug
 release: pre-compile $(EXENAME) echo-done
-debug: clean pre-compile $(EXENAME)-debug echo-done
+debug: pre-compile $(EXENAME)-debug echo-done
 
 pre-compile: echo-compile $(OBJS_DIR)
 

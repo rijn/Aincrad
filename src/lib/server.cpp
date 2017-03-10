@@ -73,7 +73,9 @@ class session : public client, public std::enable_shared_from_this<session> {
 
    private:
     void prompt( const string& msg ) {
+#ifdef DEBUG
         std::cout << "[" << client_s << "] " << msg << std::endl;
+#endif
     }
 
     void read_header() {
@@ -225,7 +227,9 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
         auto it = _clients.find( cptr );
         _clients.erase( it );
 
+#ifdef DEBUG
         std::cout << "[server] client = " << _clients.size() << std::endl;
+#endif
     }
 
    private:
@@ -236,8 +240,10 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
                     auto ptr = std::make_shared<session>( std::move( _socket ),
                                                           shared_from_this() );
                     _clients.insert( ptr );
+#ifdef DEBUG
                     std::cout << "[server] client = " << _clients.size()
                               << std::endl;
+#endif
                     ptr->start();
                 }
 
