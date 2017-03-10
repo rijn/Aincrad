@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <string>
 #include <cstdlib>
+#include <string>
 #include <vector>
 
 #include "package.hpp"
@@ -30,7 +30,7 @@ size_t Package::decrypt( char* _buffer, size_t _size ) {
     (void)_buffer;
     size_t header_size   = sizeof( PACKAGE_HEADER ) - 1;  // remove the last nul
     size_t int_size      = sizeof( int );
-    int    head_tag_size = (int)( header_size + int_size );
+    size_t head_tag_size = header_size + int_size;
     if ( size < head_tag_size ) {
         return 0;
     }
@@ -57,7 +57,7 @@ Package& Package::encrypt() {
     *size_begin     = (int)size;
 
     buffer[header_size + int_size] = '\0';
-    strncat( buffer, content, content.length() );
+    strncat( buffer, content.c_str(), content.length() );
 
     return *shared_from_this();
 };
