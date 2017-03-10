@@ -16,11 +16,11 @@ OBJS = $(EXENAME).o
 DEPS = arguments.o config.o util.o client.o server.o package.o
 OBJS_DIR = objs
 OPTIMIZE = off
-INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/ -I/usr/local/include -I/usr/local/Cellar/boost/1.63.0/include
+INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/ -I/usr/local/include
 DEFINE = -DASIO_HAS_STD_ATOMIC
 VPATH = ./src/ ./src/lib/ $(OBJS_DIR)
 WARNINGS = -pedantic -Wall -Werror -Wfatal-errors -Wextra -Wno-unused-parameter -Wno-unused-variable
-LDFLAGS = $(INCLUDES) -std=c++14 -stdlib=libc++ -lpthread -L/usr/local/lib -lboost_system $(WARNINGS)
+LDFLAGS = $(INCLUDES) -std=c++14 -stdlib=libc++ -lpthread -L/usr/local/lib -lboost_system -lboost_system-mt $(WARNINGS)
 CXXFLAGS = $(INCLUDES) $(DEFINE) -std=c++14 -stdlib=libc++ -MMD -MP $(WARNINGS)
 -include $(OBJS_DIR)/*.d
 
@@ -109,3 +109,22 @@ new: clean all
 clean:
 	@rm -f $(wildcard *.d) $(wildcard *.o) $(wildcard *.cgo) $(wildcard *.cga) $(EXENAME) $(CCMONAD) $(IDFILE)
 	@rm -rf $(OBJS_DIR)
+
+BOOST_PATH = $(shell brew info boost | sed -n 4p | cut -d ' ' -f 1)
+PATCH_PATH = $(BOOST_PATH)/include/boost/asio/detail/
+
+.PHONY: patch
+patch:
+	@echo "Boost Path = $(BOOST_PATH)"
+	@echo -n "Patch to path $(PATCH_PATH) ?"
+	@read -rs -t5 -n 1 yn;
+
+	@echo ""
+
+	@echo "patching..."
+
+	cp -f "./asio_patch/fenced_block.hpp" "$(PATCH_PATH)fenced_block.hpp"
+	cp -f "./asio_patch/std_fenced_block.hpp" "$(PATCH_PATH)std_fenced_block.hpp"
+
+	@echo -e "\033[;32mdone.\033[0m"
+
