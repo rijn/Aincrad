@@ -16,12 +16,12 @@ OBJS = $(EXENAME).o
 DEPS = arguments.o config.o util.o client.o server.o package.o
 OBJS_DIR = objs
 OPTIMIZE = off
-INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/ -I/usr/local/include
+INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/ -I/usr/local/include -I/usr/local/Cellar/boost/1.63.0/include
 DEFINE = -DASIO_HAS_STD_ATOMIC
 VPATH = ./src/ ./src/lib/ $(OBJS_DIR)
 WARNINGS = -pedantic -Wall -Werror -Wfatal-errors -Wextra -Wno-unused-parameter -Wno-unused-variable
-LDFLAGS = $(INCLUDES) -std=c++11 -stdlib=libc++ -stdlib=libc++ -lpthread -lboost_system $(WARNINGS)
-CXXFLAGS = $(INCLUDES) $(DEFINE) -std=c++11 -stdlib=libc++ -stdlib=libc++ -MMD -MP $(WARNINGS)
+LDFLAGS = $(INCLUDES) -std=c++14 -stdlib=libc++ -lpthread -L/usr/local/lib -lboost_system $(WARNINGS)
+CXXFLAGS = $(INCLUDES) $(DEFINE) -std=c++14 -stdlib=libc++ -MMD -MP $(WARNINGS)
 -include $(OBJS_DIR)/*.d
 
 BUILD_SCRIPTS_DIR    = ./build-scripts
