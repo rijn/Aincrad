@@ -4,6 +4,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/lexical_cast.hpp>
 #include <deque>
 #include <functional>
 #include <iostream>
@@ -55,9 +56,9 @@ class session : public client, public std::enable_shared_from_this<session> {
     ~session(){};
 
     void start() {
-        std::cout << "new session "; 
-        std::cout << _socket.remote_endpoint().address().to_string();
-        std::cout << std::endl;
+        client_s =
+            boost::lexical_cast<std::string>( _socket.remote_endpoint() );
+        std::cout << "new session " << client_s << std::endl;
         read_header();
     };
 
@@ -71,7 +72,6 @@ class session : public client, public std::enable_shared_from_this<session> {
     };
 
    private:
-
     void read_header() {
         boost::asio::async_read(
             _socket, boost::asio::buffer(
@@ -93,7 +93,8 @@ class session : public client, public std::enable_shared_from_this<session> {
             _socket, boost::asio::buffer( recv_package.body(),
                                           recv_package.body_length() ),
             [this, self]( boost::system::error_code ec, std::size_t len ) {
-                std::cout << "recv " << len << " bytes." << std::endl;
+                std::cout << "[" << client_s << "] "
+                          << "recv " << len << " bytes." << std::endl;
                 if ( !ec ) {
                     /*
                      *                    // concat buffer
@@ -156,6 +157,8 @@ class session : public client, public std::enable_shared_from_this<session> {
 
     tcp::socket _socket;
     server_ptr  _server;
+
+    std::string client_s;
 
     deque<Package> send_queue;
 
