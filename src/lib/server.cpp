@@ -102,17 +102,9 @@ class session : public client, public std::enable_shared_from_this<session> {
             [this, self]( boost::system::error_code ec, std::size_t len ) {
                 prompt( "recv " + std::to_string( len ) + " bytes." );
                 if ( !ec ) {
-                    /*
-                     *                    // concat buffer
-                     *                    buffer = (char*)realloc( buffer, size
-                     * + len );
-                     *                    memcpy( buffer + size, _buffer, len );
-                     *
-                     *                    // decrypt buffer
-                     *                    analyze_buffer();
-                     */
-
                     read_header();
+                    _server->apply( "recv_package", shared_from_this(),
+                                    &recv_package );
                 } else {
                     prompt( "leave" );
                     _server->apply( "client_leave", shared_from_this(), NULL );

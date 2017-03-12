@@ -26,9 +26,6 @@ using boost::asio::buffer;
 using network::Package;
 
 class Client {
-    /*
-     *: public std::enable_shared_from_this<Client> {
-     */
    public:
     Client( const Client& ) = delete;
     Client& operator=( const Client& ) = delete;
@@ -111,17 +108,6 @@ class Client {
             [this]( boost::system::error_code ec, std::size_t len ) {
                 (void)len;
                 if ( !ec ) {
-                    // concat buffer
-                    /*
-                     *buffer = (char*)realloc( buffer, size + len );
-                     *memcpy( buffer + size, _buffer, len );
-                     */
-
-                    // decrypt buffer
-                    /*
-                     *analyze_buffer();
-                     */
-
                     std::cout.write( recv_package.body(),
                                      recv_package.body_length() );
                     std::cout << "\n";
