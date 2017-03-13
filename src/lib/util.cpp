@@ -178,5 +178,4 @@ std::string failed_string()
     return colorize::make_color(colorize::RED  , "FAILED");
 }
 
-
 };

@@ -2,8 +2,10 @@
 #include <boost/asio.hpp>
 #include <thread>
 #include "lib/client.cpp"
+#include "lib/command.hpp"
 #include "lib/package.hpp"
-#include "lib/server.cpp"
+#include "lib/server.hpp"
+#include "lib/util.h"
 
 using boost::asio::ip::tcp;
 using std::thread;
@@ -51,13 +53,20 @@ int main( int argc, char* argv[] ) {
             auto s = std::make_shared<network::Server>( io_service, endpoint );
             s->start();
 
+            register_processor( s );
+
             io_service.run();
         } catch ( std::exception& e ) {
             std::cerr << "Exception: " << e.what() << "\n";
         }
+
+        while ( 1 ) sleep( 1 );
     }
 
     if ( role == "client" ) {
+    }
+
+    if ( role == "terminal" ) {
         string addr = _conf_remote.value( "server", "addr" );
         string port = _conf_remote.value( "server", "port" );
 
@@ -92,8 +101,6 @@ int main( int argc, char* argv[] ) {
             std::cerr << "Exception: " << e.what() << "\n";
         }
     }
-
-    while ( 1 ) sleep( 1 );
 
     return 0;
 }

@@ -3,12 +3,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <memory>
 
 #define PACKAGE_HEADER AINCRAD_PACKAGE
 
 namespace network {
 
-class Package {
+class Package : public std::enable_shared_from_this<Package> {
    public:
     enum { header_length = 15 };
     enum { size_length = 4 };
@@ -68,5 +70,6 @@ class Package {
     char        _data[header_length + size_length + max_body_length];
     std::size_t _body_length;
 };
-};
 
+typedef std::shared_ptr<Package> package_ptr;
+};
