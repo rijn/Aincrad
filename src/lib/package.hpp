@@ -19,8 +19,15 @@ class Package : public std::enable_shared_from_this<Package> {
     Package() : _body_length( 0 ) {
     }
 
-    Package(std::string s) {
-        
+    Package( std::string s ) {
+        size_t s_len = s.length();
+        if ( s_len > max_body_length ) {
+            throw std::logic_error( "too many data" );
+        }
+        _body_length = s_len;
+        encrypt();
+        _data[header_length + size_length] = '\0';
+        std::strncat( _data, s, _body_length );
     }
 
     const char* data() const {
