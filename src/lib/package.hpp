@@ -19,6 +19,10 @@ class Package : public std::enable_shared_from_this<Package> {
     Package() : _body_length( 0 ) {
     }
 
+    Package(std::string s) {
+        
+    }
+
     const char* data() const {
         return _data;
     }

@@ -47,7 +47,9 @@ int main( int argc, char* argv[] ) {
     cout << "role = " << role << endl;
 
     if ( role == "server" ) {
-        try {
+        /*
+         *try {
+         */
             boost::asio::io_service io_service;
             tcp::endpoint           endpoint( tcp::v4(), std::atoi( "8888" ) );
             auto s = std::make_shared<network::Server>( io_service, endpoint );
@@ -56,9 +58,11 @@ int main( int argc, char* argv[] ) {
             register_processor( s );
 
             io_service.run();
-        } catch ( std::exception& e ) {
-            std::cerr << "Exception: " << e.what() << "\n";
-        }
+        /*
+         *} catch ( std::exception& e ) {
+         *    std::cerr << "Exception: " << e.what() << "\n";
+         *}
+         */
 
         while ( 1 ) sleep( 1 );
     }
