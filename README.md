@@ -55,6 +55,11 @@ Some samples:
     set_hostname$clientA
     ```
 
+* Broadcast message to all client except self
+    ```
+    print$message$broadcast$this$->>
+    ```
+
 * Ping client
     ```
     print$Connected$<$<$this$>$>$-$time$->$this$->>$->$clientA$->>$time
