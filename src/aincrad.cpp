@@ -80,7 +80,7 @@ int main( int argc, char* argv[] ) {
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
-                           "reg " + client->hostname() ) );
+                           "reg$" + client->hostname() ) );
                    } );
 
             std::thread t( [&io_service]() { io_service.run(); } );
@@ -112,7 +112,7 @@ int main( int argc, char* argv[] ) {
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
-                           "reg " + client->hostname() ) );
+                           "reg$" + client->hostname() ) );
                    } );
 
             std::thread t( [&io_service]() { io_service.run(); } );
@@ -120,14 +120,7 @@ int main( int argc, char* argv[] ) {
             char line[network::Package::max_body_length + 1];
             while ( std::cin.getline(
                 line, network::Package::max_body_length + 1 ) ) {
-                auto msg = std::make_shared<network::Package>();
-                msg->body_length( std::strlen( line ) );
-                std::memcpy( msg->body(), line, msg->body_length() );
-                msg->encrypt();
                 Operate::process( line, NULL, NULL, NULL, c );
-                /*
-                 *c->send( msg );
-                 */
             }
 
             c->close();

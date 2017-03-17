@@ -77,7 +77,7 @@ class Operate {
                          network::session_ptr session,
                          network::server_ptr  server,
                          network::client_ptr  client ) {
-        auto argv = util::split( line, ' ' );
+        auto argv = util::split( line, '$' );
         _const( argv, package, session, server, client );
         wrapped w( std::deque<std::string>(), std::deque<std::string>(),
                    package, session, server, client );
@@ -85,38 +85,18 @@ class Operate {
             w.astack.push_back( arg );
         }
         next( w );
-        /*
-         *if ( argv.size() == 0 ) {
-         *    return;
-         *}
-         *if ( session == NULL ) self( argv, client->hostname() );
-         *if ( fn_map.find( argv[0] ) == fn_map.end() ) {
-         *    if ( session == NULL )
-         *        client->send(
-         *            std::make_shared<network::Package>( "command error" ) );
-         *        ;
-         *    else
-         *        session->send( std::make_shared<network::Package>(
-         *            "print command error" ) );
-         *} else {
-         *    wrapped w( argv, package, session, server, client );
-         *    next( w )
-         *    fn_map[argv[0]]( line, argv, package, session, server, client );
-         *}
-         */
-        return;
     };
 
     static std::string _pack( wrapped& w ) {
         auto p = std::accumulate(
             w.astack.begin(), w.astack.end(), string( "" ),
-            []( const string& s1, const string& s2 ) -> string {
-                return s1.empty() ? s2 : s1 + " " + s2;
+            [&]( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s1 + "$" + s2;
             } );
         p = std::accumulate(
             w.vstack.begin(), w.vstack.end(), p,
-            []( const string& s1, const string& s2 ) -> string {
-                return s1.empty() ? s2 : s1 + " " + s2;
+            [&]( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s1 + "$" + s2;
             } );
         return p;
     }
@@ -155,8 +135,8 @@ class Operate {
             string( "" ),
             []( const string& s1, network::session_ptr s2 ) -> string {
                 return s1.empty()
-                           ? "[" + s2->get_client_s() + "]-" + s2->hostname
-                           : s1 + "\n[" + s2->get_client_s() + "]-" +
+                           ? "[" + s2->get_client_s() + "] " + s2->hostname
+                           : s1 + "\n[" + s2->get_client_s() + "] " +
                                  s2->hostname;
             } ) );
         next( w );
@@ -192,7 +172,7 @@ class Operate {
         w.client->set_hostname( w.vstack.back() );
         w.vstack.pop_back();
         w.client->send( std::make_shared<network::Package>(
-            "reg " + w.client->hostname() ) );
+            "reg$" + w.client->hostname() ) );
     }
 
    private:
@@ -206,6 +186,7 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"reg", &Operate::reg},
                                   {"->", &Operate::to},
                                   {"to", &Operate::to},
+                                  {"system", &Operate::system},
                                   /*
                                    *{"broadcast", &Operate::broadcast},
                                    */

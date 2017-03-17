@@ -45,12 +45,17 @@ Some samples:
 
 * List all clients connected to the server
     ```
-    print -> this list_host ->>
+    print$->$this$list_host$->>
+    ```
+
+* Set hostname
+    ```
+    set_hostname$clientA
     ```
 
 * Ping client
     ```
-    print Connected < < this > > -> this ->> -> clientA ->>
+    print$Connected$<$<$this$>$>$->$this$->>$->$clientA$->>
     # will return "clientA Connected !"
     ```
 
