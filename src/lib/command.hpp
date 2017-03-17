@@ -161,6 +161,7 @@ class Operate {
 Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
                                   {"reg", &Operate::reg},
+                                  {"->", &Operate::to},
                                   {"to", &Operate::to},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
