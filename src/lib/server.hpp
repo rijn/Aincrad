@@ -32,6 +32,8 @@ class _session {
    public:
     virtual ~_session(){};
     virtual void send( package_ptr message ) = 0;
+
+    std::string hostname;
 };
 
 typedef std::shared_ptr<_session> session_ptr;
@@ -44,7 +46,9 @@ class _Server {
                      std::function<void( package_ptr, session_ptr,
                                          std::shared_ptr<_Server> )> ){};
     virtual void apply( string event, session_ptr, package_ptr msg ) = 0;
-    virtual void broadcast( package_ptr, std::function<bool( session_ptr )> ){};
+    virtual void broadcast( package_ptr,
+                            std::function<bool( session_ptr )> ) = 0;
+    virtual void sent_to( package_ptr message, std::string hostname ) = 0;
 };
 
 typedef std::shared_ptr<_Server> server_ptr;
@@ -75,6 +79,8 @@ class session : public _session, public std::enable_shared_from_this<session> {
             write();
         }
     };
+
+    std::string hostname;
 
    private:
     void prompt( const string& msg ) {
@@ -125,7 +131,8 @@ class session : public _session, public std::enable_shared_from_this<session> {
         boost::asio::async_write(
             _socket, boost::asio::buffer( send_queue.front()->data(),
                                           send_queue.front()->length() ),
-            [this, self]( boost::system::error_code ec, std::size_t ) {
+            [this, self]( boost::system::error_code ec, std::size_t len ) {
+                prompt( "sent " + std::to_string( len ) + " bytes." );
                 if ( !ec ) {
                     send_queue.pop_front();
                     if ( !send_queue.empty() ) {
@@ -167,6 +174,12 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
         std::cout << "Server is listening on "
                   << "8888" << std::endl;
     };
+
+    void sent_to( package_ptr message, std::string hostname ) {
+        broadcast( message, [&]( session_ptr session ) {
+            return session->hostname == hostname;
+        } );
+    }
 
     void broadcast( package_ptr                        message,
                     std::function<bool( session_ptr )> filter ) {

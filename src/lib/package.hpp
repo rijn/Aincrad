@@ -26,8 +26,7 @@ class Package : public std::enable_shared_from_this<Package> {
         }
         _body_length = s_len;
         encrypt();
-        _data[header_length + size_length] = '\0';
-        std::strncat( _data, s, _body_length );
+        std::memcpy( body(), s.c_str(), _body_length );
     }
 
     const char* data() const {

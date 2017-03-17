@@ -46,64 +46,93 @@ int main( int argc, char* argv[] ) {
 
     cout << "role = " << role << endl;
 
-    if ( role == "server" ) {
-        /*
-         *try {
-         */
+    try {
+        if ( role == "server" ) {
             boost::asio::io_service io_service;
             tcp::endpoint           endpoint( tcp::v4(), std::atoi( "8888" ) );
             auto s = std::make_shared<network::Server>( io_service, endpoint );
             s->start();
 
-            register_processor( s );
+            register_processor( s, NULL );
 
             io_service.run();
-        /*
-         *} catch ( std::exception& e ) {
-         *    std::cerr << "Exception: " << e.what() << "\n";
-         *}
-         */
 
-        while ( 1 ) sleep( 1 );
-    }
+            while ( 1 ) sleep( 1 );
+        }
 
-    if ( role == "client" ) {
-    }
+        if ( role == "client" ) {
+            string addr = _conf_remote.value( "server", "addr" );
+            string port = _conf_remote.value( "server", "port" );
 
-    if ( role == "terminal" ) {
-        string addr = _conf_remote.value( "server", "addr" );
-        string port = _conf_remote.value( "server", "port" );
+            cout << "Server " << addr << ":" << port << endl;
 
-        if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
-
-        cout << "Server " << addr << ":" << port << endl;
-
-        try {
             boost::asio::io_service io_service;
 
             tcp::resolver resolver( io_service );
             auto          endpoint_iterator = resolver.resolve( {addr, port} );
-            network::Client c( io_service, endpoint_iterator );
+            auto          c = std::make_shared<network::Client>( io_service,
+                                                        endpoint_iterator );
+            c->_hostname = "c1";
+
+            // register event handler
+            register_processor( NULL, c );
+            c->on( "connect",
+                   []( network::package_ptr, network::client_ptr client ) {
+                       client->send( std::make_shared<network::Package>(
+                           "reg " + client->hostname() ) );
+                   } );
+
+            std::thread t( [&io_service]() { io_service.run(); } );
+
+            while ( 1 ) sleep( 1 );
+
+            c->close();
+            t.join();
+        }
+
+        if ( role == "terminal" ) {
+            string addr = _conf_remote.value( "server", "addr" );
+            string port = _conf_remote.value( "server", "port" );
+
+            if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
+
+            cout << "Server " << addr << ":" << port << endl;
+
+            boost::asio::io_service io_service;
+
+            tcp::resolver resolver( io_service );
+            auto          endpoint_iterator = resolver.resolve( {addr, port} );
+            auto          c = std::make_shared<network::Client>( io_service,
+                                                        endpoint_iterator );
+            c->_hostname = "t1";
+
+            register_processor( NULL, c );
+            c->on( "connect",
+                   []( network::package_ptr, network::client_ptr client ) {
+                       client->send( std::make_shared<network::Package>(
+                           "reg " + client->hostname() ) );
+                   } );
 
             std::thread t( [&io_service]() { io_service.run(); } );
 
             char line[network::Package::max_body_length + 1];
             while ( std::cin.getline(
                 line, network::Package::max_body_length + 1 ) ) {
-                network::Package msg;
-                msg.body_length( std::strlen( line ) );
-                std::memcpy( msg.body(), line, msg.body_length() );
-                msg.encrypt();
-                c.send( msg );
+                auto msg = std::make_shared<network::Package>();
+                msg->body_length( std::strlen( line ) );
+                std::memcpy( msg->body(), line, msg->body_length() );
+                msg->encrypt();
+                Operate::process( line, NULL, NULL, NULL, c );
+                /*
+                 *c->send( msg );
+                 */
             }
 
-            sleep( 5 );
-
-            c.close();
+            c->close();
             t.join();
-        } catch ( std::exception& e ) {
-            std::cerr << "Exception: " << e.what() << "\n";
         }
+    } catch ( std::exception& e ) {
+        std::cerr << "Exception: " << e.what() << "\n";
     }
 
     return 0;
