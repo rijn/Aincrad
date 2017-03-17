@@ -31,8 +31,8 @@ using network::Package;
 class _session {
    public:
     virtual ~_session(){};
-    virtual void send( package_ptr message ) = 0;
-    virtual std::string get_client_s()       = 0;
+    virtual void send( package_ptr message )  = 0;
+    virtual const string get_client_s() const = 0;
 
     virtual bool operator==( const _session& other ) {
         return true;
