@@ -45,12 +45,12 @@ Some samples:
 
 * List all clients connected to the server
     ```
-    ->> list_host
+    print -> this list_host ->>
     ```
 
 * Ping client
     ```
-    ->> -> clientA ->> -> this print < this > Connected !
+    print Connected < < this > > -> this ->> -> clientA ->>
     # will return "clientA Connected !"
     ```
 

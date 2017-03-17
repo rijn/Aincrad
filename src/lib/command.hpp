@@ -155,8 +155,8 @@ class Operate {
             string( "" ),
             []( const string& s1, network::session_ptr s2 ) -> string {
                 return s1.empty()
-                           ? "[" + s2->get_client_s() + "] " + s2->hostname
-                           : s1 + "\n[" + s2->get_client_s() + "] " +
+                           ? "[" + s2->get_client_s() + "]-" + s2->hostname
+                           : s1 + "\n[" + s2->get_client_s() + "]-" +
                                  s2->hostname;
             } ) );
         next( w );
@@ -180,7 +180,8 @@ class Operate {
 
     static void forward( wrapped& w ) {
         auto p = _pack( w );
-        w.client->send( std::make_shared<network::Package>( p ) );
+        if ( w.client )
+            w.client->send( std::make_shared<network::Package>( p ) );
     }
 
     static void system( wrapped& w ) {
