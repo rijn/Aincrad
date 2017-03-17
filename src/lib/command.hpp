@@ -165,6 +165,12 @@ class Operate {
     }
 
     static void system( wrapped& w ) {
+        auto command = w.vstack.back();
+        w.vstack.pop_back();
+
+        auto output = util::exec( command.c_str(), false );
+        w.vstack.push_back( output );
+
         next( w );
     }
 
