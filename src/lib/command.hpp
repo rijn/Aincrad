@@ -24,17 +24,18 @@ class Operate {
         int level = 0;
         for ( auto it = argv.begin(); it != argv.end(); ++it ) {
             if ( *it == "<" ) {
+                if (level == 0) it = argv.erase( it );
                 ++level;
-                it = argv.erase( it );
             } else if ( *it == ">" ) {
                 --level;
-                it = argv.erase( it );
+                if (level == 0) it = argv.erase( it );
             } else if ( *it == "this" && !level ) {
                 *it = hostname;
             }
-            if (it == argv.end()) break;
+            if ( it == argv.end() ) break;
         }
     }
+
     static void process( std::string line, network::package_ptr package,
                          network::session_ptr session,
                          network::server_ptr  server,
@@ -96,6 +97,15 @@ class Operate {
         client->send( p );
     }
 
+    static void set_hostname( std::string, std::vector<std::string> argv,
+                              network::package_ptr, network::session_ptr,
+                              network::server_ptr,
+                              network::client_ptr client ) {
+        client->set_hostname( argv[1] );
+        client->send(
+            std::make_shared<network::Package>( "reg " + client->hostname() ) );
+    }
+
    private:
     typedef std::map<
         std::string,
@@ -109,6 +119,7 @@ class Operate {
 Operate::FnMap Operate::fn_map = {{"echo", &Operate::echo},
                                   {"reg", &Operate::reg},
                                   {"to", &Operate::to},
+                                  {"set_hostname", &Operate::set_hostname},
                                   {"print", &Operate::print}};
 
 // register command processor

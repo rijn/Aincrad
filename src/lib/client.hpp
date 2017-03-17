@@ -36,7 +36,8 @@ class _Client {
         string,
         std::function<void( package_ptr, std::shared_ptr<_Client> )> ) = 0;
 
-    virtual std::string hostname() = 0;
+    virtual std::string hostname()                  = 0;
+    virtual void        set_hostname( std::string ) = 0;
 };
 
 typedef std::shared_ptr<_Client> client_ptr;
@@ -84,6 +85,9 @@ class Client : public _Client, public std::enable_shared_from_this<Client> {
 
     std::string hostname() {
         return _hostname;
+    };
+    void set_hostname( std::string hostname ) {
+        _hostname = hostname;
     };
     std::string _hostname;
 
