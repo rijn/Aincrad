@@ -31,10 +31,13 @@ using network::Package;
 class _session {
    public:
     virtual ~_session(){};
-    virtual void send( package_ptr message ) = 0;
-    virtual bool operator==(const _session &other){
-        return true;  
+    virtual void send( package_ptr message )  = 0;
+    virtual const string get_client_s() const = 0;
+
+    virtual bool operator==( const _session& other ) {
+        return true;
     }
+
     std::string hostname;
 };
 
@@ -83,11 +86,11 @@ class session : public _session, public std::enable_shared_from_this<session> {
         }
     };
 
-    bool operator==(const session& other){
-        return !(this->client_s.compare( other.get_client_s())); 
+    bool operator==( const session& other ) {
+        return !( this->client_s.compare( other.get_client_s() ) );
     }
 
-    const string get_client_s() const{
+    const string get_client_s() const {
         return client_s;
     }
 
@@ -159,7 +162,6 @@ class session : public _session, public std::enable_shared_from_this<session> {
 
     tcp::socket _socket;
     server_ptr  _server;
-
     std::string client_s;
 
     deque<package_ptr> send_queue;

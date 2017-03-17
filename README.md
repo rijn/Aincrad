@@ -19,8 +19,6 @@ Aincrad could:
 ## Dependency
 
 ```
-autoconf >= stable 2.69
-automake >= stable 1.15
 Boost >= stable 1.6.1
 ```
 
@@ -30,6 +28,48 @@ Boost >= stable 1.6.1
 # compile
 $ make all
 ```
+
+## Command
+
+```
+->> / forward      # push all remaining commands to server
+-> / to hostname   # push remaining commands to specific client
+system             # run system and push result to vstack
+broadcast except   # broadcast command to all clients except specific host
+set_hostname name  # set host name
+list_host          # list clients
+print              # print vstack to standard out
+this               # would be altered to hostname
+< >                # scope operator. would be removed one level when parsing.
+```
+
+Some samples:
+
+* List all clients connected to the server
+    ```
+    print$->$this$list_host$->>
+    ```
+
+* Set hostname
+    ```
+    set_hostname$clientA
+    ```
+
+* Broadcast message to all client except self
+    ```
+    print$message$broadcast$this$->>
+    ```
+
+* Ping client
+    ```
+    print$Connected$<$<$this$>$>$-$time$->$this$->>$->$clientA$->>$time
+    # will return "clientA Connected !"
+    ```
+
+* List root dir on clientA
+    ```
+    print$->$this$->>$system$ls /$->$clientA$->>
+    ```
 
 ## License
 
