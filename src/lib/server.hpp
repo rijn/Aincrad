@@ -34,6 +34,10 @@ class _session {
     virtual void send( package_ptr message ) = 0;
     virtual std::string get_client_s()       = 0;
 
+    virtual bool operator==( const _session& other ) {
+        return true;
+    }
+
     std::string hostname;
 };
 
@@ -82,7 +86,11 @@ class session : public _session, public std::enable_shared_from_this<session> {
         }
     };
 
-    std::string get_client_s() {
+    bool operator==( const session& other ) {
+        return !( this->client_s.compare( other.get_client_s() ) );
+    }
+
+    const string get_client_s() const {
         return client_s;
     }
 

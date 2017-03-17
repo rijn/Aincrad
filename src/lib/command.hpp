@@ -74,6 +74,25 @@ class Operate {
         else
             client->send( p );
     }
+    
+    static void broadcast( std::string, std::vector<std::string>      argv,
+                    network::package_ptr, network::session_ptr session,
+                    network::server_ptr server, network::client_ptr) {
+        auto p = std::make_shared<network::Package>( std::accumulate(
+            argv.begin() + 1, argv.end(),
+            string( "" ), []( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s1 + " " + s2;
+            } ) );
+        server->broadcast( p, [&](network::session_ptr current_session){
+                if (session == current_session) return true;
+                if (session && current_session) {
+                    return *session == *current_session;
+                }
+                else{
+                    return false;
+                }
+        } );
+    }
 
     static void list_host( std::string, std::vector<std::string>,
                            network::package_ptr, network::session_ptr session,
@@ -142,8 +161,8 @@ class Operate {
 Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
                                   {"reg", &Operate::reg},
-                                  {"->", &Operate::to},
                                   {"to", &Operate::to},
+                                  {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
                                   {"print", &Operate::print}};
