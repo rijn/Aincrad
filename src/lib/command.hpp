@@ -108,6 +108,16 @@ class Operate {
         w.server->sent_to( std::make_shared<network::Package>( p ), hostname );
     }
 
+    static void broadcast( wrapped& w ) {
+        auto block = w.vstack.back();
+        w.vstack.pop_back();
+        auto p = _pack( w );
+        w.server->broadcast( std::make_shared<network::Package>( p ),
+                             [&]( network::session_ptr session ) {
+                                 return block != session->hostname;
+                             } );
+    }
+
     /*
      *static void broadcast( std::string, std::vector<std::string>      argv,
      *                       network::package_ptr, network::session_ptr session,
@@ -193,9 +203,7 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"->", &Operate::to},
                                   {"to", &Operate::to},
                                   {"system", &Operate::system},
-                                  /*
-                                   *{"broadcast", &Operate::broadcast},
-                                   */
+                                  {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
                                   {"print", &Operate::print}};

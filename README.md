@@ -34,9 +34,11 @@ $ make all
 ```
 ->> / forward      # push all remaining commands to server
 -> / to hostname   # push remaining commands to specific client
+system             # run system and push result to vstack
+broadcast except   # broadcast command to all clients except specific host
 set_hostname name  # set host name
 list_host          # list clients
-print              # flush remaining things to standard out
+print              # print vstack to standard out
 this               # would be altered to hostname
 < >                # scope operator. would be removed one level when parsing.
 ```
@@ -55,8 +57,13 @@ Some samples:
 
 * Ping client
     ```
-    print$Connected$<$<$this$>$>$->$this$->>$->$clientA$->>
+    print$Connected$<$<$this$>$>$-$time$->$this$->>$->$clientA$->>$time
     # will return "clientA Connected !"
+    ```
+
+* List root dir on clientA
+    ```
+    print$->$this$->>$system$ls /$->$clientA$->>
     ```
 
 ## License
