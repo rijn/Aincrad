@@ -172,7 +172,6 @@ std::string passed_string() {
 std::string failed_string() {
     return colorize::make_color( colorize::RED, "FAILED" );
 }
-};
 
 std::string get_hostname() {
     const size_t len = 256;
@@ -181,3 +180,4 @@ std::string get_hostname() {
     std::string retval( name );
     return retval;
 }
+};

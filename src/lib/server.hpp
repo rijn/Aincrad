@@ -49,6 +49,7 @@ class _Server {
     virtual void broadcast( package_ptr,
                             std::function<bool( session_ptr )> ) = 0;
     virtual void sent_to( package_ptr message, std::string hostname ) = 0;
+    virtual std::set<session_ptr>& get_clients() = 0;
 };
 
 typedef std::shared_ptr<_Server> server_ptr;
@@ -208,6 +209,10 @@ class Server : public _Server, public std::enable_shared_from_this<Server> {
 #ifdef DEBUG
         std::cout << "[server] client = " << _clients.size() << std::endl;
 #endif
+    }
+
+    virtual std::set<session_ptr>& get_clients() {
+        return _clients;
     }
 
    private:

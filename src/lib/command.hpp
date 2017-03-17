@@ -24,11 +24,11 @@ class Operate {
         int level = 0;
         for ( auto it = argv.begin(); it != argv.end(); ++it ) {
             if ( *it == "<" ) {
-                if (level == 0) it = argv.erase( it );
+                if ( level == 0 ) it = argv.erase( it );
                 ++level;
             } else if ( *it == ">" ) {
                 --level;
-                if (level == 0) it = argv.erase( it );
+                if ( level == 0 ) it = argv.erase( it );
             } else if ( *it == "this" && !level ) {
                 *it = hostname;
             }
@@ -41,14 +41,20 @@ class Operate {
                          network::server_ptr  server,
                          network::client_ptr  client ) {
         auto argv = util::split( line, ' ' );
+        if ( argv.size() == 0 ) {
+            return;
+        }
         if ( session == NULL ) self( argv, client->hostname() );
         if ( fn_map.find( argv[0] ) == fn_map.end() ) {
             if ( session == NULL )
-                client->send(
-                    std::make_shared<network::Package>( "command error" ) );
+                /*
+                 *client->send(
+                 *    std::make_shared<network::Package>( "command error" ) );
+                 */
+                ;
             else
-                session->send(
-                    std::make_shared<network::Package>( "command error" ) );
+                session->send( std::make_shared<network::Package>(
+                    "print command error" ) );
         } else {
             fn_map[argv[0]]( line, argv, package, session, server, client );
         }
@@ -69,6 +75,20 @@ class Operate {
             client->send( p );
     }
 
+    static void list_host( std::string, std::vector<std::string>,
+                           network::package_ptr, network::session_ptr session,
+                           network::server_ptr server, network::client_ptr ) {
+        if ( server == nullptr ) return;
+        session->send( std::make_shared<network::Package>(
+            "print " +
+            std::accumulate(
+                server->get_clients().begin(), server->get_clients().end(),
+                string( "" ),
+                []( const string& s1, network::session_ptr s2 ) -> string {
+                    return s1.empty() ? s2->hostname : s1 + " " + s2->hostname;
+                } ) ) );
+    }
+
     static void reg( std::string, std::vector<std::string>      argv,
                      network::package_ptr, network::session_ptr session,
                      network::server_ptr, network::client_ptr ) {
@@ -86,15 +106,15 @@ class Operate {
                   << std::endl;
     }
 
-    static void echo( std::string, std::vector<std::string>      argv,
-                      network::package_ptr, network::session_ptr session,
-                      network::server_ptr, network::client_ptr   client ) {
+    static void forward( std::string, std::vector<std::string> argv,
+                         network::package_ptr, network::session_ptr,
+                         network::server_ptr, network::client_ptr client ) {
         auto p = std::make_shared<network::Package>( std::accumulate(
             argv.begin() + 1, argv.end(), string( "" ),
             []( const string& s1, const string& s2 ) -> string {
                 return s1.empty() ? s2 : s1 + " " + s2;
             } ) );
-        client->send( p );
+        if ( client != nullptr ) client->send( p );
     }
 
     static void set_hostname( std::string, std::vector<std::string> argv,
@@ -116,10 +136,11 @@ class Operate {
     static FnMap fn_map;
 };
 
-Operate::FnMap Operate::fn_map = {{"echo", &Operate::echo},
+Operate::FnMap Operate::fn_map = {{"->", &Operate::forward},
                                   {"reg", &Operate::reg},
                                   {"to", &Operate::to},
                                   {"set_hostname", &Operate::set_hostname},
+                                  {"list_host", &Operate::list_host},
                                   {"print", &Operate::print}};
 
 // register command processor

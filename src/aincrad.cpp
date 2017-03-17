@@ -72,7 +72,8 @@ int main( int argc, char* argv[] ) {
             auto          endpoint_iterator = resolver.resolve( {addr, port} );
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
-            c->_hostname = "c1";
+            c->set_hostname( util::get_hostname() );
+            std::cout << "Hostname " << c->hostname();
 
             // register event handler
             register_processor( NULL, c );
@@ -104,7 +105,8 @@ int main( int argc, char* argv[] ) {
             auto          endpoint_iterator = resolver.resolve( {addr, port} );
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
-            c->_hostname = "t1";
+            c->set_hostname( util::get_hostname() );
+            std::cout << "Hostname " << c->hostname() << std::endl;
 
             register_processor( NULL, c );
             c->on( "connect",
