@@ -19,8 +19,6 @@ Aincrad could:
 ## Dependency
 
 ```
-autoconf >= stable 2.69
-automake >= stable 1.15
 Boost >= stable 1.6.1
 ```
 
@@ -30,6 +28,31 @@ Boost >= stable 1.6.1
 # compile
 $ make all
 ```
+
+## Command
+
+```
+->> / forward      # push all remaining commands to server
+-> / to hostname   # push remaining commands to specific client
+set_hostname name  # set host name
+list_host          # list clients
+print              # flush remaining things to standard out
+this               # would be altered to hostname
+< >                # scope operator. would be removed one level when parsing.
+```
+
+Some samples:
+
+* List all clients connected to the server
+    ```
+    ->> list_host
+    ```
+
+* Ping client
+    ```
+    ->> -> clientA ->> -> this print < this > Connected !
+    # will return "clientA Connected !"
+    ```
 
 ## License
 
