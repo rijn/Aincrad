@@ -118,25 +118,19 @@ class Operate {
                              } );
     }
 
-    /*
-     *static void broadcast( std::string, std::vector<std::string>      argv,
-     *                       network::package_ptr, network::session_ptr session,
-     *                       network::server_ptr server, network::client_ptr ) {
-     *    auto p = std::make_shared<network::Package>( std::accumulate(
-     *        argv.begin() + 1, argv.end(), string( "" ),
-     *        []( const string& s1, const string& s2 ) -> string {
-     *            return s1.empty() ? s2 : s1 + " " + s2;
-     *        } ) );
-     *    server->broadcast( p, [&]( network::session_ptr current_session ) {
-     *        if ( session == current_session ) return true;
-     *        if ( session && current_session ) {
-     *            return *session == *current_session;
-     *        } else {
-     *            return false;
-     *        }
-     *    } );
-     *}
-     */
+    static void time( wrapped& w ) {
+        w.vstack.push_back( util::get_time() );
+        next( w );
+    }
+
+    static void minus( wrapped& w ) {
+        long a = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        long b = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        w.vstack.push_back( std::to_string( a - b ) );
+        next( w );
+    }
 
     static void list_host( wrapped& w ) {
         if ( w.server == nullptr ) return;
@@ -202,7 +196,9 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"reg", &Operate::reg},
                                   {"->", &Operate::to},
                                   {"to", &Operate::to},
+                                  {"-", &Operate::minus},
                                   {"system", &Operate::system},
+                                  {"time", &Operate::time},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},

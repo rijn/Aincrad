@@ -62,8 +62,8 @@ Some samples:
 
 * Ping client
     ```
-    print$Connected$<$<$this$>$>$-$time$->$this$->>$->$clientA$->>$time
-    # will return "clientA Connected !"
+    print$Connected$<$<$this$>$>$ns$-$time$->$this$->>$->$clientA$->>$time
+    # will return "xxx ns clientA Connected !"
     ```
 
 * List root dir on clientA
