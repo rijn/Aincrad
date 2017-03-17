@@ -136,8 +136,10 @@ class Operate {
     static FnMap fn_map;
 };
 
-Operate::FnMap Operate::fn_map = {{"->", &Operate::forward},
+Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
+                                  {"forward", &Operate::forward},
                                   {"reg", &Operate::reg},
+                                  {"->", &Operate::to},
                                   {"to", &Operate::to},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
