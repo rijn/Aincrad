@@ -85,7 +85,10 @@ class Operate {
                 server->get_clients().begin(), server->get_clients().end(),
                 string( "" ),
                 []( const string& s1, network::session_ptr s2 ) -> string {
-                    return s1.empty() ? s2->hostname : s1 + " " + s2->hostname;
+                    return s1.empty()
+                               ? "[" + s2->get_client_s() + "] " + s2->hostname
+                               : s1 + "\n[" + s2->get_client_s() + "] " +
+                                     s2->hostname;
                 } ) ) );
     }
 

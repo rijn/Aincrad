@@ -61,6 +61,9 @@ std::string passed_string();
 std::string failed_string();
 
 std::string get_hostname();
+
+// list file and dirs
+std::vector<std::string> ll( std::string dir );
 };
 
 #endif

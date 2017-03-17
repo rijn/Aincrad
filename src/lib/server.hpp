@@ -32,6 +32,7 @@ class _session {
    public:
     virtual ~_session(){};
     virtual void send( package_ptr message ) = 0;
+    virtual std::string get_client_s()       = 0;
 
     std::string hostname;
 };
@@ -80,6 +81,10 @@ class session : public _session, public std::enable_shared_from_this<session> {
             write();
         }
     };
+
+    std::string get_client_s() {
+        return client_s;
+    }
 
     std::string hostname;
 
@@ -149,7 +154,6 @@ class session : public _session, public std::enable_shared_from_this<session> {
 
     tcp::socket _socket;
     server_ptr  _server;
-
     std::string client_s;
 
     deque<package_ptr> send_queue;
