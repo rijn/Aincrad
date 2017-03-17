@@ -39,6 +39,7 @@ void copy_files( std::string source, std::string destination,
 
 #define MAXPATHLEN 1024
 std::string get_working_path();
+std::string get_time();
 
 void exit_with_error( const char* message );
 void error_handler();

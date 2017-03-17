@@ -73,6 +73,12 @@ pair<std::string, double> exec_timer( const char* cmd, bool to_stdout ) {
     return pair<std::string, double>( result, t_end - t_start );
 }
 
+std::string get_time(){
+    using Clock = std::chrono::high_resolution_clock;
+    long t_start = Clock::now().time_since_epoch().count();
+    return std::to_string(t_start);
+}
+
 vector<string> split( string str, char delimiter ) {
     vector<string> internal;
     stringstream   ss( str );  // Turn the string into a stream.
