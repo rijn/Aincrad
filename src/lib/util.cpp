@@ -75,7 +75,7 @@ pair<std::string, double> exec_timer( const char* cmd, bool to_stdout ) {
 
 std::string get_time(){
     using Clock = std::chrono::high_resolution_clock;
-    long t_start = Clock::now().time_since_epoch().count();
+    long t_start = std::chrono::duration_cast<nanoseconds>(Clock::now().time_since_epoch()).count();
     return std::to_string(t_start);
 }
 
