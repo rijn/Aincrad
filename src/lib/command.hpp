@@ -185,6 +185,39 @@ class Operate {
             "reg$" + w.client->hostname() ) );
     }
 
+    static void s_list_host( wrapped& w ) {
+        w.astack.clear();
+        w.vstack.clear();
+        w.astack.push_back( "print" );
+        w.astack.push_back( "->" );
+        w.astack.push_back( w.client->hostname() );
+        w.astack.push_back( "list_host" );
+        w.astack.push_back( "->>" );
+        next( w );
+    }
+
+    static void s_ping( wrapped& w ) {
+        auto client_hostname = w.vstack.back();
+        w.vstack.clear();
+        w.astack.clear();
+        w.astack.push_back( "print" );
+        w.astack.push_back( "connected" );
+        w.astack.push_back( "<" );
+        w.astack.push_back( "this" );
+        w.astack.push_back( ">" );
+        w.astack.push_back( "ns" );
+        w.astack.push_back( "-" );
+        w.astack.push_back( "time" );
+        w.astack.push_back( "->" );
+        w.astack.push_back( w.client->hostname() );
+        w.astack.push_back( "->>" );
+        w.astack.push_back( "->" );
+        w.astack.push_back( client_hostname );
+        w.astack.push_back( "->>" );
+        w.astack.push_back( "time" );
+        next( w );
+    }
+
    private:
     typedef std::map<std::string, std::function<void( Operate::wrapped& )>>
                  FnMap;
@@ -202,6 +235,11 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
+                                  {"@list_host", &Operate::s_list_host},
+                                  {"@ping", &Operate::s_ping},
+                                  /*
+                                   *{"@system", &Operate::s_system},
+                                   */
                                   {"print", &Operate::print}};
 
 // register command processor
