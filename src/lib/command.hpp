@@ -223,8 +223,6 @@ class Operate {
         w.vstack.pop_back();
         auto file = std::make_shared<boost::iostreams::mapped_file_source>();
         file->open( filename );
-        std::cout << filename << " " << file->size() << std::endl;
-        std::cout << "Pointer address = " << file << std::endl;
         if ( w.server ) {
             auto hostname = w.vstack.back();
             w.vstack.pop_back();
