@@ -127,8 +127,11 @@ class session : public _session, public std::enable_shared_from_this<session> {
             [this, self]( boost::system::error_code ec, std::size_t len ) {
                 prompt( "recv " + std::to_string( len ) + " bytes." );
                 if ( !ec ) {
-                    _server->apply( "recv_package", shared_from_this(),
-                                    recv_package );
+                    if ( recv_package->is_command() ) {
+                        _server->apply( "recv_package", shared_from_this(),
+                                        recv_package );
+                    } else if ( recv_package->is_file() ) {
+                    }
                     read_header();
                 } else {
                     prompt( "leave" );

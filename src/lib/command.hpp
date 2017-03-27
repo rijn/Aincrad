@@ -218,14 +218,22 @@ class Operate {
         next( w );
     }
 
-    static void cp( wrapped& w ) {
+    static void sft( wrapped& w ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
-        auto hostname = w.vstack.back();
-        w.vstack.pop_back();
-        auto remote_filename = w.vstack.back();
-        w.vstack.pop_back();
-        w.server->sent_to( std::make_shared<network::Package>(  ), hostname );
+        auto file = std::make_shared<boost::iostreams::mapped_file_source>();
+        file->open( filename );
+        std::cout << filename << " " << file->size() << std::endl;
+        std::cout << "Pointer address = " << file << std::endl;
+        if ( w.server ) {
+            auto hostname = w.vstack.back();
+            w.vstack.pop_back();
+            w.server->sent_to( std::make_shared<network::Package>( file ),
+                               hostname );
+        } else {
+            w.client->send( std::make_shared<network::Package>( file ) );
+        }
+        file->close();
     }
 
    private:
@@ -245,6 +253,8 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
+                                  {"sft", &Operate::sft},
+                                  {"sf", &Operate::sft},
                                   {"@list_host", &Operate::s_list_host},
                                   {"@ping", &Operate::s_ping},
                                   /*
