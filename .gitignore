@@ -37,3 +37,5 @@ aincrad-debug
 objs/
 
 *.swp
+
+.fstack

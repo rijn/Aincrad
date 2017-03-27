@@ -41,19 +41,23 @@ command_n(stack_bottom)$command_n-1$...$command1
 
 And the interpreter will start with `command1`. If current command is not a build-in command, it would be thought as a variable and be pushed into vstack.
 
+File stack `fstack` is special. Since files are often large, we cannot sync `fstack` over machines. `fstack` would like a temporary dictionary saving received data. We implemented some commands for you to access these files. For example, you can use `sf`/`sft` to save local file into `fstack` of remote machine, and run `popfs` command in remote machine to move files.
+
 Here are list of build-in commands.
 
 ```
-$                  # Delimiter
-->> / forward      # push all remaining commands to server
--> / to hostname   # push remaining commands to specific client
-system             # run system and push result to vstack
-broadcast except   # broadcast command to all clients except specific host
-set_hostname name  # set host name
-list_host          # list clients
-print              # print vstack to standard out
-this               # would be altered to hostname
-< >                # scope operator. would be removed one level when parsing.
+$                     # Delimiter
+< >                   # scope operator. would be removed one level when parsing.
+->> / forward         # push all remaining commands to server
+-> / to hostname      # push remaining commands to specific client
+system                # run system and push result to vstack
+broadcast except      # broadcast command to all clients except specific host
+set_hostname name     # set host name
+list_host             # list clients
+print                 # print vstack to standard out
+sf filename           # send file / send file to
+sft filename hostname
+this                  # would be altered to hostname
 ```
 
 Some samples:
@@ -100,7 +104,6 @@ All syntactic sugar starts with `@`. Remaining arguments after parsing a syntact
 ```
 @list_host                  # list hosts connect to server
 @ping client                # ping client
-@system client command args # run command on the client and return result
 ```
 
 ## License
