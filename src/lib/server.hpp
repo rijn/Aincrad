@@ -106,9 +106,8 @@ class session : public _session, public std::enable_shared_from_this<session> {
     void read_header() {
         recv_package = std::make_shared<Package>();
         boost::asio::async_read(
-            _socket, boost::asio::buffer(
-                         recv_package->data(),
-                         Package::size_length + Package::header_length ),
+            _socket,
+            boost::asio::buffer( recv_package->data(), Package::header_len() ),
             [this]( boost::system::error_code ec, std::size_t /*length*/ ) {
                 if ( !ec && recv_package->decrypt() ) {
                     read_body();

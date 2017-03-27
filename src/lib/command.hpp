@@ -218,6 +218,16 @@ class Operate {
         next( w );
     }
 
+    static void cp( wrapped& w ) {
+        auto filename = w.vstack.back();
+        w.vstack.pop_back();
+        auto hostname = w.vstack.back();
+        w.vstack.pop_back();
+        auto remote_filename = w.vstack.back();
+        w.vstack.pop_back();
+        w.server->sent_to( std::make_shared<network::Package>(  ), hostname );
+    }
+
    private:
     typedef std::map<std::string, std::function<void( Operate::wrapped& )>>
                  FnMap;

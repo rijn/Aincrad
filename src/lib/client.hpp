@@ -110,9 +110,8 @@ class Client : public _Client, public std::enable_shared_from_this<Client> {
         auto self( shared_from_this() );
         recv_package = std::make_shared<Package>();
         boost::asio::async_read(
-            _socket, boost::asio::buffer(
-                         recv_package->data(),
-                         Package::size_length + Package::header_length ),
+            _socket,
+            boost::asio::buffer( recv_package->data(), Package::header_len() ),
             [this, self]( boost::system::error_code ec,
                           std::size_t /*length*/ ) {
                 if ( !ec && recv_package->decrypt() ) {
