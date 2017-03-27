@@ -14,6 +14,8 @@
 
 #define PACKAGE_HEADER AINCRAD_PACKAGE
 
+#define TEMP_PATH std::string( ".fstack" )
+
 namespace network {
 
 /*
@@ -124,7 +126,7 @@ class Package : public std::enable_shared_from_this<Package> {
             boost::filesystem::path full_path(
                 boost::filesystem::initial_path<boost::filesystem::path>() );
             full_path = boost::filesystem::system_complete(
-                boost::filesystem::path( "temp" ) );
+                boost::filesystem::path( TEMP_PATH ) );
             if ( !boost::filesystem::exists( full_path ) ) {
                 boost::filesystem::create_directory( full_path );
             }
@@ -134,15 +136,12 @@ class Package : public std::enable_shared_from_this<Package> {
                   dir_itr != end_iter; ++dir_itr ) {
                 if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
                     ++file_count;
-                    std::cout << dir_itr->path().filename() << "\n";
                 }
             }
 
-            std::cout << file_count << std::endl;
-
             boost::iostreams::mapped_file_params params;
             params.new_file_size = boost::numeric_cast<size_t>( _body_length );
-            params.path          = "./temp/" + std::to_string( file_count );
+            params.path = "./" + TEMP_PATH + "/" + std::to_string( file_count );
             _file =
                 std::make_shared<boost::iostreams::mapped_file_sink>( params );
         }
