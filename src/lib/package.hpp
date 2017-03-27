@@ -17,13 +17,13 @@ class Package : public std::enable_shared_from_this<Package> {
     enum { max_body_length = 1024 };
 
     Package() : _body_length( 0 ) {
+        _data = (char*)malloc( header_length + size_length + max_body_length );
     }
 
     Package( std::string s ) {
         size_t s_len = s.length();
-        if ( s_len > max_body_length ) {
-            throw std::logic_error( "too many data" );
-        }
+
+        _data = (char*)malloc( header_length + size_length + s_len );
         _body_length = s_len;
         encrypt();
         std::memcpy( body(), s.c_str(), _body_length );
@@ -62,10 +62,8 @@ class Package : public std::enable_shared_from_this<Package> {
         char size[size_length + 1] = "";
         std::strncat( size, _data + header_length, size_length );
         _body_length = std::atoi( size );
-        if ( _body_length > max_body_length ) {
-            _body_length = 0;
-            return false;
-        }
+        _data =
+            (char*)realloc( _data, header_length + size_length + _body_length );
         return true;
     }
 
@@ -77,7 +75,7 @@ class Package : public std::enable_shared_from_this<Package> {
     }
 
    private:
-    char        _data[header_length + size_length + max_body_length];
+    char*       _data;  //[header_length + size_length + max_body_length];
     std::size_t _body_length;
 };
 
