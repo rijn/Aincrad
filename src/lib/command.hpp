@@ -184,6 +184,9 @@ class Operate {
         while ( !w.astack.empty() && w.astack.back() != "end" ) {
             w.astack.pop_back();
         }
+        if ( !w.astack.empty() && w.astack.back() == "end" ) {
+            w.astack.pop_back();
+        }
 
         next( w );
     }
@@ -243,6 +246,15 @@ class Operate {
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( b == a ? "1" : "0" );
+        next( w );
+    }
+
+    static void sadd( wrapped& w ) {
+        auto a = w.vstack.back();
+        w.vstack.pop_back();
+        auto b = w.vstack.back();
+        w.vstack.pop_back();
+        w.vstack.push_back( a + b );
         next( w );
     }
 
@@ -344,17 +356,28 @@ class Operate {
     static void sft( wrapped& w ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
-        auto file = std::make_shared<boost::iostreams::mapped_file_source>();
-        file->open( filename );
-        if ( w.server ) {
-            auto hostname = w.vstack.back();
-            w.vstack.pop_back();
-            w.server->sent_to( std::make_shared<network::Package>( file ),
-                               hostname );
-        } else {
-            w.client->send( std::make_shared<network::Package>( file ) );
+
+        try {
+            if ( !fs::exists( fs::path( filename ) ) ) {
+                return;
+            }
+            auto file =
+                std::make_shared<boost::iostreams::mapped_file_source>();
+            if ( fs::file_size( fs::path( filename ) ) > 0 ) {
+                file->open( filename );
+            }
+            if ( w.server ) {
+                auto hostname = w.vstack.back();
+                w.vstack.pop_back();
+                w.server->sent_to( std::make_shared<network::Package>( file ),
+                                   hostname );
+            } else {
+                w.client->send( std::make_shared<network::Package>( file ) );
+            }
+            if ( file->is_open() ) file->close();
+        } catch ( const std::exception& ex ) {
+            std::cout << ex.what() << std::endl;
         }
-        file->close();
 
         next( w );
     }
@@ -419,10 +442,12 @@ class Operate {
         for ( fs::recursive_directory_iterator dir_itr( full_path );
               dir_itr != end_iter; ++dir_itr ) {
             if ( fs::is_regular_file( dir_itr->status() ) ) {
-                std::cout << fs::relative( dir_itr->path(), full_path ).string()
-                          << std::endl;
+                w.vstack.push_back(
+                    fs::relative( dir_itr->path(), full_path ).string() );
             }
         }
+
+        next( w );
     }
 
    private:
@@ -440,6 +465,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"+", &Operate::add},
                                   {">", &Operate::greater},
                                   {"==", &Operate::equal},
+                                  {"++", &Operate::sadd},
                                   // cond operation
                                   {"if", &Operate::_if},
                                   {"begin", &Operate::begin},

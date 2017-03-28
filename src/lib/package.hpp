@@ -56,13 +56,15 @@ class Package : public std::enable_shared_from_this<Package> {
 
     Package( std::shared_ptr<boost::iostreams::mapped_file_source>& file ) {
         // using static_cast will get a bug
-        std::uint32_t s_len = boost::numeric_cast<uint32_t>( file->size() );
+        std::uint32_t s_len =
+            file->is_open() ? boost::numeric_cast<uint32_t>( file->size() ) : 0;
 
         _data        = (char*)malloc( header_length + size_length + 4 + s_len );
         _body_length = s_len;
         _type        = _SEND_FILE;
         encrypt();
-        std::memcpy( body(), file->data(), _body_length );
+        if ( file->is_open() )
+            std::memcpy( body(), file->data(), _body_length );
     }
 
     const char* data() const {
@@ -90,17 +92,17 @@ class Package : public std::enable_shared_from_this<Package> {
     }
 
     const char* body() const {
-        return _type == _RECV_FILE ? _file->data()
+        return _type == _RECV_FILE ? ( _file ? _file->data() : nullptr )
                                    : _data + header_length + size_length + 4;
     }
 
     char* body() {
-        return _type == _RECV_FILE ? _file->data()
+        return _type == _RECV_FILE ? ( _file ? _file->data() : nullptr )
                                    : _data + header_length + size_length + 4;
     }
 
     void try_close_file() {
-        if ( _type == _RECV_FILE ) {
+        if ( _type == _RECV_FILE && _file && _file->is_open() ) {
             _file->close();
         }
     }
@@ -147,8 +149,13 @@ class Package : public std::enable_shared_from_this<Package> {
             boost::iostreams::mapped_file_params params;
             params.new_file_size = boost::numeric_cast<size_t>( _body_length );
             params.path = "./" + TEMP_PATH + "/" + std::to_string( file_count );
-            _file =
-                std::make_shared<boost::iostreams::mapped_file_sink>( params );
+            if ( _body_length > 0 ) {
+                _file = std::make_shared<boost::iostreams::mapped_file_sink>(
+                    params );
+            } else {
+                _file = nullptr;
+                std::ofstream( params.path );
+            }
         }
         return true;
     }
