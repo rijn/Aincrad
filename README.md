@@ -46,19 +46,35 @@ File stack `fstack` is special. Since files are often large, we cannot sync `fst
 Here are list of build-in commands.
 
 ```
-$                     # Delimiter
-< >                   # scope operator. would be removed one level when parsing.
-dup                   # duplicate the top element of vstack
-->> / forward         # push all remaining commands to server
--> / to hostname      # push remaining commands to specific client
-system                # run system and push result to vstack
-broadcast except      # broadcast command to all clients except specific host
-set_hostname name     # set host name
-list_host             # list clients
-print                 # print vstack to standard out
-sf filename           # send file / send file to
-sft filename hostname
-this                  # would be altered to hostname
+$                      # Delimiter
+< >                    # scope operator. would be removed one level when parsing.
+
+dup                    # duplicate the top element of vstack
+swap                   # duplicate the top element of vstack
+print                  # print vstack to standard out
+
+-                      # minus
++                      # add
+>                      # greater, if false will push a 0 into vstack
+==                     # equal, if false will push a 0 into vstack
+
+if (else, then)        # if
+
+->> / forward          # push all remaining commands to server
+-> / to hostname       # push remaining commands to specific client
+system                 # run system and push result to vstack
+time                   # push current time into vstack
+broadcast except       # broadcast command to all clients except specific host
+set_hostname name      # set host name
+list_host              # list clients
+push_host              # push clients into vstack
+
+tree dir               # push relative path into vstack recursively
+sf / sendfile path     # send file / send file to
+sft path hostname
+popfs path             # pop one file from fstack and save to path
+
+this                   # would be altered to hostname
 ```
 
 Some samples:
