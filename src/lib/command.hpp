@@ -107,6 +107,56 @@ class Operate {
         next( w );
     }
 
+    static void swap( wrapped& w ) {
+        auto a = w.vstack.back();
+        w.vstack.pop_back();
+        auto b = w.vstack.back();
+        w.vstack.pop_back();
+        w.vstack.push_back( a );
+        w.vstack.push_back( b );
+        next( w );
+    }
+
+    static void size( wrapped& w ) {
+        w.vstack.push_back( std::to_string( w.vstack.size() ) );
+        next( w );
+    }
+
+    static void _if( wrapped& w ) {
+        bool                    _else_part = false;
+        std::deque<std::string> t_deque;
+        std::deque<std::string> f_deque;
+
+        while ( w.astack.back() != "then" ) {
+            if ( w.astack.back() == "else" ) {
+                _else_part = true;
+            } else if ( _else_part ) {
+                f_deque.push_back( w.astack.back() );
+            } else {
+                t_deque.push_back( w.astack.back() );
+            }
+            w.astack.pop_back();
+        }
+        w.astack.pop_back();
+
+        auto cond = w.vstack.back();
+        w.vstack.pop_back();
+        if ( cond == "0" ) {
+            // if false
+            while ( !f_deque.empty() ) {
+                w.astack.push_back( f_deque.back() );
+                f_deque.pop_back();
+            }
+        } else {
+            while ( !t_deque.empty() ) {
+                w.astack.push_back( t_deque.back() );
+                t_deque.pop_back();
+            }
+        }
+
+        next( w );
+    }
+
     static void to( wrapped& w ) {
         auto hostname = w.vstack.back();
         w.vstack.pop_back();
@@ -134,7 +184,34 @@ class Operate {
         w.vstack.pop_back();
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
-        w.vstack.push_back( std::to_string( a - b ) );
+        w.vstack.push_back( std::to_string( b - a ) );
+        next( w );
+    }
+
+    static void add( wrapped& w ) {
+        long a = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        long b = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        w.vstack.push_back( std::to_string( a + b ) );
+        next( w );
+    }
+
+    static void greater( wrapped& w ) {
+        long a = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        long b = std::stol( w.vstack.back() );
+        w.vstack.pop_back();
+        w.vstack.push_back( b > a ? "1" : "0" );
+        next( w );
+    }
+
+    static void equal( wrapped& w ) {
+        auto a = w.vstack.back();
+        w.vstack.pop_back();
+        auto b = w.vstack.back();
+        w.vstack.pop_back();
+        w.vstack.push_back( b == a ? "1" : "0" );
         next( w );
     }
 
@@ -295,28 +372,36 @@ class Operate {
 };
 
 Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
+                                  {"swap", &Operate::swap},
+                                  {"print", &Operate::print},
+                                  // archimatic operation
+                                  {"-", &Operate::minus},
+                                  {"+", &Operate::add},
+                                  {">", &Operate::greater},
+                                  {"==", &Operate::equal},
+                                  // cond operation
+                                  {"if", &Operate::_if},
+                                  // network operation
                                   {"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
                                   {"reg", &Operate::reg},
                                   {"->", &Operate::to},
                                   {"to", &Operate::to},
-                                  {"-", &Operate::minus},
                                   {"system", &Operate::system},
                                   {"time", &Operate::time},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
                                   {"push_host", &Operate::push_host},
+                                  // file stack operation
                                   {"sft", &Operate::sft},
                                   {"sf", &Operate::sft},
                                   {"sendfile", &Operate::sft},
                                   {"popfs", &Operate::popfs},
+                                  // sugar
                                   {"@list_host", &Operate::s_list_host},
-                                  {"@ping", &Operate::s_ping},
-                                  /*
-                                   *{"@system", &Operate::s_system},
-                                   */
-                                  {"print", &Operate::print}};
+                                  //{"@system", &Operate::s_system},
+                                  {"@ping", &Operate::s_ping}};
 
 // register command processor
 void register_processor( network::server_ptr server,
