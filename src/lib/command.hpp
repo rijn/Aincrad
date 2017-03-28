@@ -2,6 +2,7 @@
 #define __COMMAND__
 
 #include <boost/any.hpp>
+#include <boost/filesystem.hpp>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -19,6 +20,8 @@ using std::endl;
 #include "package.hpp"
 #include "server.hpp"
 #include "util.h"
+
+namespace fs = boost::filesystem;
 
 class Operate {
    public:
@@ -329,7 +332,7 @@ class Operate {
     }
 
     static void popfs( wrapped& w ) {
-        boost::filesystem::path full_path(
+        fs::path full_path(
             boost::filesystem::initial_path<boost::filesystem::path>() );
         full_path = boost::filesystem::system_complete(
             boost::filesystem::path( TEMP_PATH ) );
@@ -353,6 +356,18 @@ class Operate {
         w.vstack.pop_back();
 
         try {
+            fs::path target( fs::system_complete( fs::path( filename ) ) );
+            fs::path accu( "/" );
+            fs::path::iterator it( target.begin() ), it_end( target.end() );
+            ++it;
+            --it_end;
+            for ( ; it != it_end; ++it ) {
+                accu /= it->filename().string();
+                if ( !fs::exists( accu ) ) {
+                    fs::create_directory( accu );
+                }
+            }
+
             boost::filesystem::rename(
                 boost::filesystem::system_complete( boost::filesystem::path(
                     "./" + TEMP_PATH + "/" + std::to_string( file_count ) ) ),
@@ -406,6 +421,10 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"==", &Operate::equal},
                                   // cond operation
                                   {"if", &Operate::_if},
+                                  /*
+                                   *{"begin", &Operate::_begin},
+                                   *{"exit", &Operate::_exit},
+                                   */
                                   // network operation
                                   {"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
