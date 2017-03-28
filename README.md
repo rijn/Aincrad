@@ -103,6 +103,11 @@ Some samples:
     print$ns$-$time$->$this$popfs$->>$sf$dup$TESTFILE$time$finished in
     ```
 
+* Transmit file to specific client
+    ```
+    print$ns$-$time$->$this$->>$popfs$->$sft$temp$dup$clientA$popfs$temp$->>$sf$dup$TESTFILE$time$finished in
+    ```
+
 ## Syntactic sugar
 
 All syntactic sugar starts with `@`. Remaining arguments after parsing a syntactic sugar will not be processed.

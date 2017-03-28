@@ -152,6 +152,15 @@ class Operate {
         next( w );
     }
 
+    static void push_host( wrapped& w ) {
+        if ( w.server == nullptr ) return;
+        for ( auto it = w.server->get_clients().begin();
+              it != w.server->get_clients().end(); ++it ) {
+            w.vstack.push_back( ( *it )->hostname );
+        }
+        next( w );
+    }
+
     static void reg( wrapped& w ) {
         w.session->hostname = w.vstack.back();
         w.vstack.pop_back();
@@ -297,6 +306,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
+                                  {"push_host", &Operate::push_host},
                                   {"sft", &Operate::sft},
                                   {"sf", &Operate::sft},
                                   {"sendfile", &Operate::sft},
