@@ -80,7 +80,7 @@ popfs path             # pop one file from fstack and save to path
 this                   # would be altered to hostname
 ```
 
-Some samples:
+Some demo:
 
 * List all clients connected to the server
     ```
