@@ -99,9 +99,7 @@ class Operate {
             [&]( const string& s1, const string& s2 ) -> string {
                 return s1.empty() ? s2 : s1 + "$" + s2;
             } );
-        auto p = ap + ( vp == "" ? "" : "$" + vp );
-        std::cout << "[debug]" << p << std::endl;
-        return p;
+        return ap + ( vp == "" ? "" : "$" ) + vp;
     }
 
     static void dup( wrapped& w ) {
