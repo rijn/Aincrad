@@ -127,6 +127,11 @@ Some samples:
     print$ns$-$swap$time$->$this$->>$popfs$->$sft$temp$dup$clientA$popfs$temp$->>$sf$dup$TESTFILE$time$finished in
     ```
 
+* Transmit client src/ to server temp/ recursively
+    ```
+    print$ns$swap$finished in$-$swap$time$end$then$exit$else$->$this$popfs$++$temp/$->>$sf$++$src/$dup$if$>$1$size$begin$tree$src$time
+    ```
+
 ## Syntactic sugar
 
 All syntactic sugar starts with `@`. Remaining arguments after parsing a syntactic sugar will not be processed.
