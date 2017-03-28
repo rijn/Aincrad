@@ -4,11 +4,9 @@
 
 Application manage and monitor tool designed for distributed system.
 
-## Diagram
+## Features
 
-![](https://raw.githubusercontent.com/rijn/Aincrad/master/res/diagram.jpg)
-
-Aincrad could:
+<!-- ![](https://raw.githubusercontent.com/rijn/Aincrad/master/res/diagram.jpg) -->
 
 * Real-time surveillance on multiple servers. Track many resources like CPU and memory usage.
 * Remotely control server, run commands on bash, terminate processes, restart service, reboot, etc.
