@@ -365,6 +365,31 @@ class Operate {
         next( w );
     }
 
+    static void tree( wrapped& w ) {
+        auto dir = w.vstack.back();
+        w.vstack.pop_back();
+
+        boost::filesystem::path full_path(
+            boost::filesystem::initial_path<boost::filesystem::path>() );
+        full_path = boost::filesystem::system_complete(
+            boost::filesystem::path( dir ) );
+        if ( !boost::filesystem::exists( full_path ) ) {
+            return;
+        }
+
+        boost::filesystem::recursive_directory_iterator end_iter;
+        for ( boost::filesystem::recursive_directory_iterator dir_itr(
+                  full_path );
+              dir_itr != end_iter; ++dir_itr ) {
+            if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
+                std::cout << boost::filesystem::relative( dir_itr->path(),
+                                                          full_path )
+                                 .string()
+                          << std::endl;
+            }
+        }
+    }
+
    private:
     typedef std::map<std::string, std::function<void( Operate::wrapped& )>>
                  FnMap;
@@ -394,6 +419,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"list_host", &Operate::list_host},
                                   {"push_host", &Operate::push_host},
                                   // file stack operation
+                                  {"tree", &Operate::tree},
                                   {"sft", &Operate::sft},
                                   {"sf", &Operate::sft},
                                   {"sendfile", &Operate::sft},
