@@ -433,6 +433,7 @@ class Operate {
 
 Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"swap", &Operate::swap},
+                                  {"size", &Operate::size},
                                   {"print", &Operate::print},
                                   // archimatic operation
                                   {"-", &Operate::minus},

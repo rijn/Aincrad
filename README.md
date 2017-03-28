@@ -51,6 +51,7 @@ $                      # Delimiter
 
 dup                    # duplicate the top element of vstack
 swap                   # duplicate the top element of vstack
+size                   # return current size of vstack
 print                  # print vstack to standard out
 
 -                      # minus
@@ -59,6 +60,8 @@ print                  # print vstack to standard out
 ==                     # equal, if false will push a 0 into vstack
 
 if (else, then)        # if
+begin (end)            # loop
+exit                   # exit current loop
 
 ->> / forward          # push all remaining commands to server
 -> / to hostname       # push remaining commands to specific client
