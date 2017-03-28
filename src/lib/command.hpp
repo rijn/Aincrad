@@ -160,6 +160,34 @@ class Operate {
         next( w );
     }
 
+    static void begin( wrapped& w ) {
+        std::deque<std::string> inner;
+
+        auto it = w.astack.rbegin();
+
+        while ( *it != "end" ) {
+            inner.push_back( *it );
+            ++it;
+        }
+
+        w.astack.push_back( "begin" );
+
+        while ( !inner.empty() ) {
+            w.astack.push_back( inner.back() );
+            inner.pop_back();
+        }
+
+        next( w );
+    }
+
+    static void exit( wrapped& w ) {
+        while ( !w.astack.empty() && w.astack.back() != "end" ) {
+            w.astack.pop_back();
+        }
+
+        next( w );
+    }
+
     static void to( wrapped& w ) {
         auto hostname = w.vstack.back();
         w.vstack.pop_back();
@@ -413,10 +441,8 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"==", &Operate::equal},
                                   // cond operation
                                   {"if", &Operate::_if},
-                                  /*
-                                   *{"begin", &Operate::_begin},
-                                   *{"exit", &Operate::_exit},
-                                   */
+                                  {"begin", &Operate::begin},
+                                  {"exit", &Operate::exit},
                                   // network operation
                                   {"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
