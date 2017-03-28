@@ -51,6 +51,9 @@ dup                    # duplicate the top element of vstack
 swap                   # duplicate the top element of vstack
 size                   # return current size of vstack
 print                  # print vstack to standard out
+print_limit n          # limit print
+drop n                 # pop n elements from vstack
+drop_one               # pop one elements
 
 -                      # minus
 +                      # add

@@ -125,6 +125,42 @@ class Operate {
         next( w );
     }
 
+    static void print( wrapped& w ) {
+        std::cout << std::accumulate(
+                         w.vstack.begin(), w.vstack.end(), string( "" ),
+                         []( const string& s1, const string& s2 ) -> string {
+                             return s1.empty() ? s2 : s1 + " " + s2;
+                         } )
+                  << std::endl;
+        next( w );
+    }
+
+    static void print_limit( wrapped& w ) {
+        auto n = std::atoi( w.vstack.back().c_str() );
+        w.vstack.pop_back();
+        std::string p;
+        for ( auto it = w.vstack.rbegin(); it != w.vstack.rend() && n > 0;
+              ++it, --n ) {
+            p = *it + " " + p;
+        }
+        std::cout << p << std::endl;
+        next( w );
+    }
+
+    static void drop( wrapped& w ) {
+        auto n = std::atoi( w.vstack.back().c_str() );
+        w.vstack.pop_back();
+        while ( n-- > 0 ) {
+            w.vstack.pop_back();
+        }
+        next( w );
+    }
+
+    static void drop_one( wrapped& w ) {
+        w.vstack.push_back( "1" );
+        drop( w );
+    }
+
     static void _if( wrapped& w ) {
         bool                    _else_part = false;
         std::deque<std::string> t_deque;
@@ -284,16 +320,6 @@ class Operate {
     static void reg( wrapped& w ) {
         w.session->hostname = w.vstack.back();
         w.vstack.pop_back();
-        next( w );
-    }
-
-    static void print( wrapped& w ) {
-        std::cout << std::accumulate(
-                         w.vstack.begin(), w.vstack.end(), string( "" ),
-                         []( const string& s1, const string& s2 ) -> string {
-                             return s1.empty() ? s2 : s1 + " " + s2;
-                         } )
-                  << std::endl;
         next( w );
     }
 
@@ -460,6 +486,9 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"swap", &Operate::swap},
                                   {"size", &Operate::size},
                                   {"print", &Operate::print},
+                                  {"print_limit", &Operate::print_limit},
+                                  {"drop_one", &Operate::drop_one},
+                                  {"drop", &Operate::drop},
                                   // archimatic operation
                                   {"-", &Operate::minus},
                                   {"+", &Operate::add},
