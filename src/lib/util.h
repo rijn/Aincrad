@@ -66,6 +66,7 @@ std::string get_hostname();
 // list file and dirs
 std::vector<std::string> ll( std::string dir );
 
+bool is_number( const std::string& s );
 };
 
 #endif

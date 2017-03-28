@@ -73,10 +73,12 @@ pair<std::string, double> exec_timer( const char* cmd, bool to_stdout ) {
     return pair<std::string, double>( result, t_end - t_start );
 }
 
-std::string get_time(){
-    using Clock = std::chrono::high_resolution_clock;
-    long t_start = std::chrono::duration_cast<nanoseconds>(Clock::now().time_since_epoch()).count();
-    return std::to_string(t_start);
+std::string get_time() {
+    using Clock  = std::chrono::high_resolution_clock;
+    long t_start = std::chrono::duration_cast<nanoseconds>(
+                       Clock::now().time_since_epoch() )
+                       .count();
+    return std::to_string( t_start );
 }
 
 vector<string> split( string str, char delimiter ) {
@@ -185,5 +187,13 @@ std::string get_hostname() {
     gethostname( name, len );
     std::string retval( name );
     return retval;
+}
+
+// determine if a string is a number
+// http://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
+bool is_number( const std::string& s ) {
+    return !s.empty() && std::find_if( s.begin(), s.end(), []( char c ) {
+                             return !std::isdigit( c );
+                         } ) == s.end();
 }
 };

@@ -48,6 +48,7 @@ Here are list of build-in commands.
 ```
 $                     # Delimiter
 < >                   # scope operator. would be removed one level when parsing.
+dup                   # duplicate the top element of vstack
 ->> / forward         # push all remaining commands to server
 -> / to hostname      # push remaining commands to specific client
 system                # run system and push result to vstack
@@ -95,6 +96,11 @@ Some samples:
 * List root dir on clientA
     ```
     print$->$this$->>$system$ls /$->$clientA$->>
+    ```
+
+* Transmit file to server and save to same relative path
+    ```
+    print$ns$-$time$->$this$popfs$->>$sf$dup$TESTFILE$time$finished in
     ```
 
 ## Syntactic sugar

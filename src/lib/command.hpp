@@ -16,6 +16,7 @@ using std::cout;
 using std::endl;
 
 #include "client.hpp"
+#include "package.hpp"
 #include "server.hpp"
 #include "util.h"
 
@@ -88,17 +89,24 @@ class Operate {
     };
 
     static std::string _pack( wrapped& w ) {
-        auto p = std::accumulate(
+        auto vp = std::accumulate(
+            w.vstack.begin(), w.vstack.end(), string( "" ),
+            [&]( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s2 + "$" + s1;
+            } );
+        auto ap = std::accumulate(
             w.astack.begin(), w.astack.end(), string( "" ),
             [&]( const string& s1, const string& s2 ) -> string {
                 return s1.empty() ? s2 : s1 + "$" + s2;
             } );
-        p = std::accumulate(
-            w.vstack.begin(), w.vstack.end(), p,
-            [&]( const string& s1, const string& s2 ) -> string {
-                return s1.empty() ? s2 : s1 + "$" + s2;
-            } );
+        auto p = ap + ( vp == "" ? "" : "$" + vp );
+        std::cout << "[debug]" << p << std::endl;
         return p;
+    }
+
+    static void dup( wrapped& w ) {
+        w.vstack.push_back( w.vstack.back() );
+        next( w );
     }
 
     static void to( wrapped& w ) {
@@ -232,6 +240,45 @@ class Operate {
             w.client->send( std::make_shared<network::Package>( file ) );
         }
         file->close();
+
+        next( w );
+    }
+
+    static void popfs( wrapped& w ) {
+        boost::filesystem::path full_path(
+            boost::filesystem::initial_path<boost::filesystem::path>() );
+        full_path = boost::filesystem::system_complete(
+            boost::filesystem::path( TEMP_PATH ) );
+        if ( !boost::filesystem::exists( full_path ) ) {
+            boost::filesystem::create_directory( full_path );
+        }
+        boost::filesystem::directory_iterator end_iter;
+        size_t                                file_count = 0;
+        for ( boost::filesystem::directory_iterator dir_itr( full_path );
+              dir_itr != end_iter; ++dir_itr ) {
+            if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
+                if ( util::is_number( dir_itr->path().filename().string() ) ) {
+                    ++file_count;
+                }
+            }
+        }
+
+        --file_count;
+
+        auto filename = w.vstack.back();
+        w.vstack.pop_back();
+
+        try {
+            boost::filesystem::rename(
+                boost::filesystem::system_complete( boost::filesystem::path(
+                    "./" + TEMP_PATH + "/" + std::to_string( file_count ) ) ),
+                boost::filesystem::system_complete(
+                    boost::filesystem::path( filename ) ) );
+        } catch ( const std::exception& ex ) {
+            std::cout << ex.what() << std::endl;
+        }
+
+        next( w );
     }
 
    private:
@@ -240,7 +287,8 @@ class Operate {
     static FnMap fn_map;
 };
 
-Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
+Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
+                                  {"->>", &Operate::forward},
                                   {"forward", &Operate::forward},
                                   {"reg", &Operate::reg},
                                   {"->", &Operate::to},
@@ -253,6 +301,8 @@ Operate::FnMap Operate::fn_map = {{"->>", &Operate::forward},
                                   {"list_host", &Operate::list_host},
                                   {"sft", &Operate::sft},
                                   {"sf", &Operate::sft},
+                                  {"sendfile", &Operate::sft},
+                                  {"popfs", &Operate::popfs},
                                   {"@list_host", &Operate::s_list_host},
                                   {"@ping", &Operate::s_ping},
                                   /*

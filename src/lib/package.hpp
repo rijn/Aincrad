@@ -12,6 +12,8 @@
 #include <memory>
 #include <string>
 
+#include "util.h"
+
 #define PACKAGE_HEADER AINCRAD_PACKAGE
 
 #define TEMP_PATH std::string( ".fstack" )
@@ -135,7 +137,10 @@ class Package : public std::enable_shared_from_this<Package> {
             for ( boost::filesystem::directory_iterator dir_itr( full_path );
                   dir_itr != end_iter; ++dir_itr ) {
                 if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
-                    ++file_count;
+                    if ( util::is_number(
+                             dir_itr->path().filename().string() ) ) {
+                        ++file_count;
+                    }
                 }
             }
 
