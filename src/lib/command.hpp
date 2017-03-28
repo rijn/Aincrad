@@ -64,10 +64,10 @@ class Operate {
                         network::client_ptr client ) {
         int level = 0;
         for ( auto it = argv.begin(); it != argv.end(); ++it ) {
-            if ( *it == "<" ) {
+            if ( *it == "[" ) {
                 if ( level == 0 ) it = argv.erase( it );
                 ++level;
-            } else if ( *it == ">" ) {
+            } else if ( *it == "]" ) {
                 --level;
                 if ( level == 0 ) it = argv.erase( it );
             } else if ( *it == "this" && !level ) {
@@ -363,9 +363,9 @@ class Operate {
         w.astack.clear();
         w.astack.push_back( "print" );
         w.astack.push_back( "connected" );
-        w.astack.push_back( "<" );
+        w.astack.push_back( "[" );
         w.astack.push_back( "this" );
-        w.astack.push_back( ">" );
+        w.astack.push_back( "]" );
         w.astack.push_back( "ns" );
         w.astack.push_back( "-" );
         w.astack.push_back( "time" );

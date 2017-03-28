@@ -45,7 +45,7 @@ Here are list of build-in commands.
 
 ```
 $                      # Delimiter
-< >                    # scope operator. would be removed one level when parsing.
+[ ]                    # scope operator. would be removed one level when parsing.
 
 dup                    # duplicate the top element of vstack
 swap                   # duplicate the top element of vstack
@@ -109,7 +109,7 @@ Some demo:
 
 * Ping client
     ```
-    print$Connected$<$<$this$>$>$ns$-$swap$time$->$this$->>$->$clientA$->>$time
+    print$Connected$[$[$this$]$]$ns$-$swap$time$->$this$->>$->$clientA$->>$time
     # will return "xxx ns clientA Connected !"
     ```
 
@@ -136,6 +136,11 @@ Some demo:
 * Transmit server /src to localhost /temp
     ```
     print$ns$swap$finished in$-$swap$time$->$this$end$then$exit$else$->>$popfs$++$temp/$->$this$sft$swap$this$++$src/$dup$if$>$1$size$begin$tree$src$->>$time
+    ```
+
+* Ping every clients
+    ```
+    end$then$exit$else$drop$3$print_limit$3$ns$-$swap$time$swap$->$this$->>$->$dup$swap$->>$time$if$>$0$size$begin$->$this$push_host$->>
     ```
 
 ## Syntactic sugar
