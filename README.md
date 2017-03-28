@@ -105,7 +105,7 @@ Some samples:
 
 * Ping client
     ```
-    print$Connected$<$<$this$>$>$ns$-$time$->$this$->>$->$clientA$->>$time
+    print$Connected$<$<$this$>$>$ns$-$swap$time$->$this$->>$->$clientA$->>$time
     # will return "xxx ns clientA Connected !"
     ```
 
@@ -116,12 +116,12 @@ Some samples:
 
 * Transmit file to server and save to same relative path
     ```
-    print$ns$-$time$->$this$popfs$->>$sf$dup$TESTFILE$time$finished in
+    print$ns$-$swap$time$->$this$popfs$->>$sf$dup$TESTFILE$time$finished in
     ```
 
 * Transmit file to specific client
     ```
-    print$ns$-$time$->$this$->>$popfs$->$sft$temp$dup$clientA$popfs$temp$->>$sf$dup$TESTFILE$time$finished in
+    print$ns$-$swap$time$->$this$->>$popfs$->$sft$temp$dup$clientA$popfs$temp$->>$sf$dup$TESTFILE$time$finished in
     ```
 
 ## Syntactic sugar
