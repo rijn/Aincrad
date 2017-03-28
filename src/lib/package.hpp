@@ -14,6 +14,8 @@
 
 #include "util.h"
 
+namespace fs = boost::filesystem;
+
 #define PACKAGE_HEADER AINCRAD_PACKAGE
 
 #define TEMP_PATH std::string( ".fstack" )
@@ -125,18 +127,16 @@ class Package : public std::enable_shared_from_this<Package> {
         } else if ( _type == _SEND_FILE ) {
             _type = _RECV_FILE;
 
-            boost::filesystem::path full_path(
-                boost::filesystem::initial_path<boost::filesystem::path>() );
-            full_path = boost::filesystem::system_complete(
-                boost::filesystem::path( TEMP_PATH ) );
-            if ( !boost::filesystem::exists( full_path ) ) {
-                boost::filesystem::create_directory( full_path );
+            fs::path full_path( fs::initial_path<fs::path>() );
+            full_path = fs::system_complete( fs::path( TEMP_PATH ) );
+            if ( !fs::exists( full_path ) ) {
+                fs::create_directory( full_path );
             }
-            boost::filesystem::directory_iterator end_iter;
-            size_t                                file_count = 0;
-            for ( boost::filesystem::directory_iterator dir_itr( full_path );
+            fs::directory_iterator end_iter;
+            size_t                 file_count = 0;
+            for ( fs::directory_iterator dir_itr( full_path );
                   dir_itr != end_iter; ++dir_itr ) {
-                if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
+                if ( fs::is_regular_file( dir_itr->status() ) ) {
                     if ( util::is_number(
                              dir_itr->path().filename().string() ) ) {
                         ++file_count;

@@ -11,15 +11,15 @@
 #include <string>
 #include <vector>
 
-using std::vector;
-using std::string;
-using std::cout;
-using std::endl;
-
 #include "client.hpp"
 #include "package.hpp"
 #include "server.hpp"
 #include "util.h"
+
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
 
 namespace fs = boost::filesystem;
 
@@ -332,18 +332,16 @@ class Operate {
     }
 
     static void popfs( wrapped& w ) {
-        fs::path full_path(
-            boost::filesystem::initial_path<boost::filesystem::path>() );
-        full_path = boost::filesystem::system_complete(
-            boost::filesystem::path( TEMP_PATH ) );
-        if ( !boost::filesystem::exists( full_path ) ) {
-            boost::filesystem::create_directory( full_path );
+        fs::path full_path( fs::initial_path<fs::path>() );
+        full_path = fs::system_complete( fs::path( TEMP_PATH ) );
+        if ( !fs::exists( full_path ) ) {
+            fs::create_directory( full_path );
         }
-        boost::filesystem::directory_iterator end_iter;
-        size_t                                file_count = 0;
-        for ( boost::filesystem::directory_iterator dir_itr( full_path );
-              dir_itr != end_iter; ++dir_itr ) {
-            if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
+        fs::directory_iterator end_iter;
+        size_t                 file_count = 0;
+        for ( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter;
+              ++dir_itr ) {
+            if ( fs::is_regular_file( dir_itr->status() ) ) {
                 if ( util::is_number( dir_itr->path().filename().string() ) ) {
                     ++file_count;
                 }
@@ -368,11 +366,10 @@ class Operate {
                 }
             }
 
-            boost::filesystem::rename(
-                boost::filesystem::system_complete( boost::filesystem::path(
-                    "./" + TEMP_PATH + "/" + std::to_string( file_count ) ) ),
-                boost::filesystem::system_complete(
-                    boost::filesystem::path( filename ) ) );
+            fs::rename(
+                fs::system_complete( fs::path( "./" + TEMP_PATH + "/" +
+                                               std::to_string( file_count ) ) ),
+                fs::system_complete( fs::path( filename ) ) );
         } catch ( const std::exception& ex ) {
             std::cout << ex.what() << std::endl;
         }
@@ -384,22 +381,17 @@ class Operate {
         auto dir = w.vstack.back();
         w.vstack.pop_back();
 
-        boost::filesystem::path full_path(
-            boost::filesystem::initial_path<boost::filesystem::path>() );
-        full_path = boost::filesystem::system_complete(
-            boost::filesystem::path( dir ) );
-        if ( !boost::filesystem::exists( full_path ) ) {
+        fs::path full_path( fs::initial_path<fs::path>() );
+        full_path = fs::system_complete( fs::path( dir ) );
+        if ( !fs::exists( full_path ) ) {
             return;
         }
 
-        boost::filesystem::recursive_directory_iterator end_iter;
-        for ( boost::filesystem::recursive_directory_iterator dir_itr(
-                  full_path );
+        fs::recursive_directory_iterator end_iter;
+        for ( fs::recursive_directory_iterator dir_itr( full_path );
               dir_itr != end_iter; ++dir_itr ) {
-            if ( boost::filesystem::is_regular_file( dir_itr->status() ) ) {
-                std::cout << boost::filesystem::relative( dir_itr->path(),
-                                                          full_path )
-                                 .string()
+            if ( fs::is_regular_file( dir_itr->status() ) ) {
+                std::cout << fs::relative( dir_itr->path(), full_path ).string()
                           << std::endl;
             }
         }
