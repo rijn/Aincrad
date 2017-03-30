@@ -382,7 +382,7 @@ class Operate {
             if ( var.find( str ) != var.end() ) {
                 str = var[str];
             }
-            command = command + ( command.empty() ? "" : "$" ) + str;
+            command = str + ( command.empty() ? "" : "$" ) + command;
         }
 
         next( w );
