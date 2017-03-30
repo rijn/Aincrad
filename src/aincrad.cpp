@@ -1,5 +1,9 @@
 #include "aincrad.h"
+#include <ncurses.h>
+#include <unistd.h>
 #include <boost/asio.hpp>
+#include <csignal>
+#include <string>
 #include <thread>
 #include "lib/client.cpp"
 #include "lib/command.hpp"
@@ -16,7 +20,27 @@ namespace opts {
 bool svn = true;
 };
 
+int max_row, max_col;
+
 int main( int argc, char* argv[] ) {
+    // ----------- init ncurses ----------------
+    initscr();               // setup ncurses screen
+    raw();                   // enable raw mode so we can capture ctrl+c, etc.
+    keypad( stdscr, true );  // to capture arrow key, etc.
+    noecho();                // so that escape characters won't be printed
+    getmaxyx( stdscr, max_row, max_col );  // get max windows size
+    std::signal( SIGSEGV, segfault_handler );
+
+    // -------------- done init ----------------
+
+    // ---------- establish connection ---------
+    // print_welcome_screen();  // let user enter ip and port
+    // ---------- connection established -------
+
+    return aincrad_main( argc, argv );
+}
+
+int aincrad_main( int argc, char* argv[] ) {
     /* error handler */
     /*
      *std::set_terminate( error_handler );
@@ -131,4 +155,9 @@ int main( int argc, char* argv[] ) {
     }
 
     return 0;
+}
+
+void segfault_handler( int sig ) {
+    // so that ncurses won't mess up our screen
+    endwin();
 }

@@ -8,11 +8,15 @@
 using namespace std;
 using namespace util;
 
-#define AINCRAD                                           \
+#define AINCRAD                                                                                           \
     "   ▄▄   ▄▄▄▄▄  ▄▄   ▄   ▄▄▄  ▄▄▄▄▄    ▄▄   ▄▄▄▄  \n" \
-    "   ██     █    █▀▄  █ ▄▀   ▀ █   ▀█   ██   █   ▀▄\n" \
-    "  █  █    █    █ █▄ █ █      █▄▄▄▄▀  █  █  █    █\n" \
-    "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █    █\n" \
+    "   ██     █    █▀▄  █ ▄▀   ▀ █   ▀█   ██   █   ▀▄\n"             \
+    "  █  █    █    █ █▄ █ █      █▄▄▄▄▀  █  █  █    █\n"             \
+    "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █    █\n"             \
     " █    █ ▄▄█▄▄  █   ██  ▀▄▄▄▀ █    ▀ █    █ █▄▄▄▀ \n"
 
 #endif
+
+int aincrad_main( int argc, char* argv[] );
+
+void segfault_handler( int sig );
