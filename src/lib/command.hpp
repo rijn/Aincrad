@@ -506,6 +506,11 @@ class Operate {
             return;
         }
 
+        if ( !fs::is_directory( full_path ) ) {
+            next( w );
+            return;
+        }
+
         fs::recursive_directory_iterator end_iter;
         for ( fs::recursive_directory_iterator dir_itr( full_path );
               dir_itr != end_iter; ++dir_itr ) {
