@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "client.hpp"
+#include "config.h"
 #include "package.hpp"
 #include "server.hpp"
 #include "util.h"
@@ -22,6 +23,8 @@ using std::cout;
 using std::endl;
 
 namespace fs = boost::filesystem;
+
+static std::string script_dir( "" );
 
 class Operate {
    public:
@@ -346,6 +349,45 @@ class Operate {
             "reg$" + w.client->hostname() ) );
     }
 
+    static void run( wrapped& w ) {
+        auto filename = w.vstack.back();
+        w.vstack.pop_back();
+
+        auto path = fs::path( script_dir + filename );
+
+        if ( !fs::exists( path ) ) {
+            return;
+        }
+
+        fs::ifstream file( path );
+        string       str;
+        string       command;
+
+        std::map<string, string> var;
+
+        while ( getline( file, str ) ) {
+            if ( str.length() == 0 ) {
+                if ( !command.empty() ) {
+                    Operate::process( command, w.package, w.session, w.server,
+                                      w.client );
+                }
+                command = "";
+                continue;
+            }
+            if ( str[0] == '#' ) {
+                var[str.substr( 1 )] = w.vstack.back();
+                w.vstack.pop_back();
+                continue;
+            }
+            if ( var.find( str ) != var.end() ) {
+                str = var[str];
+            }
+            command = command + ( command.empty() ? "" : "$" ) + str;
+        }
+
+        next( w );
+    }
+
     static void s_list_host( wrapped& w ) {
         w.astack.clear();
         w.vstack.clear();
@@ -511,6 +553,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"set_hostname", &Operate::set_hostname},
                                   {"list_host", &Operate::list_host},
                                   {"push_host", &Operate::push_host},
+                                  {"run", &Operate::run},
                                   // file stack operation
                                   {"tree", &Operate::tree},
                                   {"sft", &Operate::sft},
@@ -525,6 +568,12 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
 // register command processor
 void register_processor( network::server_ptr server,
                          network::client_ptr client ) {
+    if ( script_dir == "" ) {
+        util::config _conf_remote;
+        _conf_remote.read_config( util::get_working_path() + "/.config" );
+        script_dir = _conf_remote.value( "script", "dir" );
+    }
+
     if ( server )
         server->on( "recv_package", []( network::package_ptr package,
                                         network::session_ptr session,
