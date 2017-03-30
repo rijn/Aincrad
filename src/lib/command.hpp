@@ -169,8 +169,13 @@ class Operate {
         std::deque<std::string> t_deque;
         std::deque<std::string> f_deque;
 
-        while ( w.astack.back() != "then" ) {
-            if ( w.astack.back() == "else" ) {
+        int level = 1;
+
+        while ( level > 0 ) {
+            if ( w.astack.back() == "if" ) ++level;
+            if ( w.astack.back() == "then" ) --level;
+            if (level == 0) break;
+            if ( level == 1 && w.astack.back() == "else" ) {
                 _else_part = true;
             } else if ( _else_part ) {
                 f_deque.push_back( w.astack.back() );
@@ -203,8 +208,12 @@ class Operate {
         std::deque<std::string> inner;
 
         auto it = w.astack.rbegin();
+        int  c  = 1;
 
-        while ( *it != "end" ) {
+        while ( c > 0 ) {
+            if ( *it == "begin" ) ++c;
+            if ( *it == "end" ) --c;
+            if ( c == 0 ) break;
             inner.push_back( *it );
             ++it;
         }
@@ -220,10 +229,16 @@ class Operate {
     }
 
     static void exit( wrapped& w ) {
-        while ( !w.astack.empty() && w.astack.back() != "end" ) {
+        while ( !w.astack.empty() && w.astack.back() != "begin" ) {
             w.astack.pop_back();
         }
-        if ( !w.astack.empty() && w.astack.back() == "end" ) {
+        if ( !w.astack.empty() && w.astack.back() == "begin" ) {
+            w.astack.pop_back();
+        }
+        int level = 1;
+        while ( !w.astack.empty() && level > 0 ) {
+            if ( w.astack.back() == "begin" ) ++level;
+            if ( w.astack.back() == "end" ) --level;
             w.astack.pop_back();
         }
 

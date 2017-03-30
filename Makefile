@@ -20,7 +20,7 @@ INCLUDES = -I./src/ -I$(OBJS_DIR)/ -I./src/lib/ -I/usr/local/include
 DEFINE = -DASIO_HAS_STD_ATOMIC
 VPATH = ./src/ ./src/lib/ $(OBJS_DIR)
 WARNINGS = -pedantic -Wall -Werror -Wfatal-errors -Wextra -Wno-unused-parameter -Wno-unused-variable
-LDFLAGS = $(INCLUDES) -std=c++14 -stdlib=libc++ -lpthread -L/usr/local/lib -lboost_system -lboost_system-mt -lboost_iostreams -lboost_filesystem $(WARNINGS)
+LDFLAGS = $(INCLUDES) -std=c++14 -stdlib=libc++ -lpthread -L/usr/local/lib -lboost_system -lboost_system-mt -lboost_iostreams -lboost_filesystem -lncurses $(WARNINGS)
 CXXFLAGS = $(INCLUDES) $(DEFINE) -std=c++14 -stdlib=libc++ -MMD -MP $(WARNINGS)
 -include $(OBJS_DIR)/*.d
 
