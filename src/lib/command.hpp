@@ -113,6 +113,18 @@ class Operate {
         next( w );
     }
 
+    static void lwc( wrapped& w ) {
+        std::string s = w.vstack.back();
+        std::transform(s.begin(), s.end(), s.begin(), std::tolower);
+        w.vstack.push_back( s );
+    }
+
+    static void upc( wrapped& w ) {
+        std::string s = w.vstack.back();
+        std::transform(s.begin(), s.end(), s.begin(), std::toupper);
+        w.vstack.push_back( s );
+    }
+
     static void swap( wrapped& w ) {
         auto a = w.vstack.back();
         w.vstack.pop_back();
@@ -551,6 +563,8 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"print_limit", &Operate::print_limit},
                                   {"drop_one", &Operate::drop_one},
                                   {"drop", &Operate::drop},
+                                  {"lwc", &Operate::lwc},
+                                  {"upc", &Operate::upc},
                                   // archimatic operation
                                   {"-", &Operate::minus},
                                   {"+", &Operate::add},
