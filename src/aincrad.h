@@ -20,3 +20,4 @@ using namespace util;
 int aincrad_main( int argc, char* argv[] );
 
 void segfault_handler( int sig );
+void run_editor();

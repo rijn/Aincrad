@@ -1,15 +1,18 @@
 #include "aincrad.h"
-#include <ncurses.h>
 #include <unistd.h>
 #include <boost/asio.hpp>
 #include <csignal>
-#include <string>
 #include <thread>
 #include "lib/client.cpp"
 #include "lib/command.hpp"
 #include "lib/package.hpp"
 #include "lib/server.hpp"
 #include "lib/util.h"
+
+#include <ncurses.h>
+#include <string>
+#include "lib/editor.h"
+#include "lib/window.h"
 
 using boost::asio::ip::tcp;
 using std::thread;
@@ -20,9 +23,12 @@ namespace opts {
 bool svn = true;
 };
 
-int max_row, max_col;
+int    max_row, max_col;
+Editor editor;  // for windows info, etc.
 
 int main( int argc, char* argv[] ) {
+    // cout << colorize::make_color( colorize::LIGHT_BLUE, AINCRAD ) << endl;
+
     // ----------- init ncurses ----------------
     initscr();               // setup ncurses screen
     raw();                   // enable raw mode so we can capture ctrl+c, etc.
@@ -30,14 +36,16 @@ int main( int argc, char* argv[] ) {
     noecho();                // so that escape characters won't be printed
     getmaxyx( stdscr, max_row, max_col );  // get max windows size
     std::signal( SIGSEGV, segfault_handler );
+    std::signal( SIGINT, segfault_handler );
 
     // -------------- done init ----------------
 
-    // ---------- establish connection ---------
-    // print_welcome_screen();  // let user enter ip and port
-    // ---------- connection established -------
+    run_editor();
 
-    return aincrad_main( argc, argv );
+    while ( 1 )
+        ;
+    // return aincrad_main( argc, argv );
+    return 0;
 }
 
 int aincrad_main( int argc, char* argv[] ) {
@@ -55,8 +63,6 @@ int aincrad_main( int argc, char* argv[] ) {
     /* parser arguments */
     arguments _arg;
     if ( !_arg.process_arguments( argc, argv ) ) return ( EXIT_FAILURE );
-
-    cout << colorize::make_color( colorize::LIGHT_BLUE, AINCRAD ) << endl;
 
     /* check environment */
     config _conf_remote;
@@ -160,4 +166,15 @@ int aincrad_main( int argc, char* argv[] ) {
 void segfault_handler( int sig ) {
     // so that ncurses won't mess up our screen
     endwin();
+}
+
+void run_editor() {
+    int y, x;
+    getyx( stdscr, y, x );
+    editor.init( max_row, max_col );
+    erase();
+    refresh();
+    editor.status.print_filename( AINCRAD );
+    // colorize::make_color( colorize::LIGHT_BLUE, AINCRAD ) );
+    editor.file.printline( "command", 0 );
 }
