@@ -116,12 +116,14 @@ class Operate {
     static void lwc( wrapped& w ) {
         std::string s = w.vstack.back();
         std::transform(s.begin(), s.end(), s.begin(), std::tolower);
+        w.vstack.pop_back();
         w.vstack.push_back( s );
     }
 
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
         std::transform(s.begin(), s.end(), s.begin(), std::toupper);
+        w.vstack.pop_back();
         w.vstack.push_back( s );
     }
 
