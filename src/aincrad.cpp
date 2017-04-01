@@ -41,9 +41,41 @@ int main( int argc, char* argv[] ) {
     // -------------- done init ----------------
 
     run_editor();
+    int c;
+    for ( ;; ) {
+        c = wgetch( editor.file );
+        if ( std::isprint( c ) ) {
+            waddch( editor.file, c );
+            continue;
+        }
+        switch ( c ) {
+            case KEY_CTRL_C:
+                endwin();
+                std::exit( 0 );
+                break;
+            case KEY_LEFT: {
+                int x, y;
+                getyx( editor.file, y, x );
+                wmove( editor.file, y, --x );
+            } break;
+            case KEY_RIGHT: {
+                int x, y;
+                getyx( editor.file, y, x );
+                wmove( editor.file, y, ++x );
+            } break;
+            case KEY_UP: {
+                int x, y;
+                getyx( editor.file, y, x );
+                wmove( editor.file, --y, x );
+            } break;
+            case KEY_DOWN: {
+                int x, y;
+                getyx( editor.file, y, x );
+                wmove( editor.file, ++y, x );
+            } break;
+        }
+    }
 
-    while ( 1 )
-        ;
     // return aincrad_main( argc, argv );
     return 0;
 }

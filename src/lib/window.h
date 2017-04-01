@@ -9,6 +9,16 @@ using std::vector;
 using std::list;
 using std::string;
 
+enum CTRL_KEY_TYPE {
+    KEY_CTRL_C = 3,
+    KEY_CTRL_G = 7,
+    KEY_CTRL_O = 15,
+    KEY_CTRL_Q = 17,
+    KEY_CTRL_S = 19,
+    KEY_CTRL_X = 24,
+    KEY_DELETE = 127,
+};
+
 class Window {
    public:
     Window() = default;
@@ -139,4 +149,7 @@ class FileContent : public Window {
     // size_t num_file_lines;
 };
 
+// class InputField : public Window {
+
+// };
 #endif

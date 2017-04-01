@@ -13,6 +13,28 @@ using std::string;
     "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █    █\n"             \
     " █    █ ▄▄█▄▄  █   ██  ▀▄▄▄▀ █    ▀ █    █ █▄▄▄▀ \n"
 
+vector<string> anicrad =
+    // {"   ▄▄   ▄▄▄▄▄  ▄▄   ▄   ▄▄▄  ▄▄▄▄▄    ▄▄   ▄▄▄▄  ",
+    //                          "   ██     █    █▀▄  █ ▄▀   ▀ █   ▀█   ██   █
+    //                          ▀▄",
+    //                          "  █  █    █    █ █▄ █ █      █▄▄▄▄▀  █  █  █
+    //                          █",
+    //                          "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █
+    //                          █",
+    //                          " █    █ ▄▄█▄▄  █   ██  ▀▄▄▄▀ █    ▀ █    █
+    //                          █▄▄▄▀ "};
+
+    {"  ______   __                                                __ ",
+     " /      \\ |  \\                                              |  \\",
+     "|  $$$$$$\\ \\$$ _______    _______   ______    ______    ____| $$",
+     "| $$__| $$|  \\|       \\  /       \\ /      \\  |      \\  /      $$",
+     "| $$    $$| $$| $$$$$$$\\|  $$$$$$$|  $$$$$$\\  \\$$$$$$\\|  $$$$$$$",
+     "| $$$$$$$$| $$| $$  | $$| $$      | $$   \\$$ /      $$| $$  | $$",
+     "| $$  | $$| $$| $$  | $$| $$_____ | $$      |  $$$$$$$| $$__| $$",
+     "| $$  | $$| $$| $$  | $$ \\$$     \\| $$       \\$$    $$ \\$$    $$",
+     " \\$$   \\$$ \\$$ \\$$   \\$$  \\$$$$$$$ \\$$        \\$$$$$$$  "
+     "\\$$$$$$$"};
+
 bool Window::init( int h, int w, int starty, int startx ) {
     if ( is_init ) return false;
     win     = newwin( h, w, starty, startx );
@@ -40,14 +62,24 @@ void Window::clear() {
 void StatusBar::print_filename( const string& file_name ) {
     if ( !is_init ) return;
     // wattron( win, A_REVERSE );  // print in reverse color
+    int y = 0;
     wmove( win, 0, 0 );
     // wclrtoeol( win );
     // waddch( win, ' ' );
+    // std::cout << anicrad << std::endl;
 
-    for ( const char& i : AINCRAD ) {
-        waddch( win, i );
+    for ( const auto& i : anicrad ) {
+        // if ( i == '\n' ) {
+        //     y++;
+        //     wmove( win, y, 0 );
+        //     continue;
+        // }
+
+        // waddch( win, i );
+        // std::cout << i << std::endl;
+        // wmove( win, ++y, 0 );
+        mvwprintw( win, ++y, 0, i.c_str() );
     }
-
     // waddnstr( win, file_name.c_str(), file_name.size() );
     // for ( size_t i = file_name.size() + 1; i < max_col; ++i )
     //     waddch( win, ' ' );
