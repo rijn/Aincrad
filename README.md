@@ -17,7 +17,8 @@ Application manage and monitor tool designed for distributed system.
 ## Dependency
 
 ```
-Boost >= stable 1.6.1
+Boost >= stable 1.5.7
+ncurses
 ```
 
 ## Install
