@@ -24,6 +24,35 @@ using std::endl;
 
 namespace fs = boost::filesystem;
 
+namespace boost {
+namespace filesystem{
+
+static fs::path relativeTo( fs::path from, fs::path to ) {
+    fs::path::const_iterator fromIter = from.begin();
+    fs::path::const_iterator toIter   = to.begin();
+
+    while ( fromIter != from.end() && toIter != to.end() &&
+            ( *toIter ) == ( *fromIter ) ) {
+        ++toIter;
+        ++fromIter;
+    }
+
+    fs::path finalPath;
+    while ( fromIter != from.end() ) {
+        finalPath /= "..";
+        ++fromIter;
+    }
+
+    while ( toIter != to.end() ) {
+        finalPath /= *toIter;
+        ++toIter;
+    }
+
+    return finalPath;
+}
+}
+}
+
 static std::string script_dir( "" );
 
 class Operate {
@@ -115,16 +144,16 @@ class Operate {
 
     static void lwc( wrapped& w ) {
         std::string s = w.vstack.back();
-        std::transform(s.begin(), s.end(), s.begin(),
-            [](unsigned char c) { return std::tolower(c);});
+        std::transform( s.begin(), s.end(), s.begin(),
+                        []( unsigned char c ) { return std::tolower( c ); } );
         w.vstack.pop_back();
         w.vstack.push_back( s );
     }
 
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
-        std::transform(s.begin(), s.end(), s.begin(), 
-            [](unsigned char c) { return std::toupper(c);});
+        std::transform( s.begin(), s.end(), s.begin(),
+                        []( unsigned char c ) { return std::toupper( c ); } );
         w.vstack.pop_back();
         w.vstack.push_back( s );
     }
@@ -190,7 +219,7 @@ class Operate {
         while ( level > 0 ) {
             if ( w.astack.back() == "if" ) ++level;
             if ( w.astack.back() == "then" ) --level;
-            if (level == 0) break;
+            if ( level == 0 ) break;
             if ( level == 1 && w.astack.back() == "else" ) {
                 _else_part = true;
             } else if ( _else_part ) {
@@ -392,8 +421,8 @@ class Operate {
 
         fs::ifstream file;
         file.open( path );
-        string       str;
-        string       command;
+        string str;
+        string command;
 
         std::map<string, string> var;
 
@@ -548,7 +577,7 @@ class Operate {
               dir_itr != end_iter; ++dir_itr ) {
             if ( fs::is_regular_file( dir_itr->status() ) ) {
                 w.vstack.push_back(
-                    fs::relative( dir_itr->path(), full_path ).string() );
+                    fs::relativeTo( dir_itr->path(), full_path ).string() );
             }
         }
 
