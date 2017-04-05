@@ -390,7 +390,8 @@ class Operate {
             return;
         }
 
-        fs::ifstream file( path );
+        fs::ifstream file;
+        file.open( path );
         string       str;
         string       command;
 
