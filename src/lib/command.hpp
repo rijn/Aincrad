@@ -3,6 +3,7 @@
 
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <functional>
 #include <iostream>
 #include <map>
