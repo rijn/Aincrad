@@ -18,6 +18,6 @@ class arguments {
     std::string const& value( std::string const& entry ) const;
     bool exist( std::string const& entry ) const;
 };
-};
+}
 
 #endif

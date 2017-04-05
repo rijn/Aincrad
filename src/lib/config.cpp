@@ -81,4 +81,4 @@ bool config::exist( std::string const& section,
 
     return true;
 }
-};
+}
