@@ -33,7 +33,7 @@ class Window {
 
     bool init( int h, int w, int starty, int startx );
 
-    void printline( const string& line, int row, int col = 0 );
+    void printline( const string& line, int row = 0, int col = 0 );
     void clear();
 
     WINDOW* get_window() const {
@@ -125,11 +125,13 @@ class FileContent : public Window {
     // bool isediting = false;
     // vector<bool> other_status_vec;
 
-   private:
+    // private:
     // list<ClientLineEntry>*          file_content;
     // list<ClientLineEntry>::iterator currrow;
     // size_t currrow_num;
     // size_t currcol;
     // size_t num_file_lines;
+    std::vector<string> history;
+    int                 vec_idx;
 };
 #endif

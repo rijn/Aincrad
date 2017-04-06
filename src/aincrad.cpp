@@ -177,7 +177,7 @@ void run_editor() {
     erase();
     refresh();
     editor.status.print_aincrad();
-    editor.file.printline( "> ", 0 );
+    editor.file.printline( "> " );
 
     // int c;
     // for ( ;; ) {
@@ -245,15 +245,33 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
             s.pop_back();
 
         } else if ( curr == KEY_ENTER || curr == '\n' ) {
+            if ( !s.empty() ) {
+                editor.file.history.push_back( s );
+                editor.file.vec_idx = editor.file.history.size();
+            }
             wclrtoeol( w );  // erase current line
-            editor.file.printline( "> ", 0 );
+            editor.file.printline( "> " );
             return true;
         } else if ( curr == KEY_LEFT ) {
             wmove( w, orig_y, --orig_x );
         } else if ( curr == KEY_RIGHT ) {
             wmove( w, orig_y, ++orig_x );
-        } else if ( curr == KEY_DOWN || curr == KEY_UP ) {
-            continue;
+        } else if ( curr == KEY_DOWN ) {
+            ++editor.file.vec_idx;
+            if ( editor.file.vec_idx >= (int)editor.file.history.size() ) {
+                editor.file.vec_idx = editor.file.history.size();
+                s                   = "";
+            } else {
+                int idx = editor.file.vec_idx;
+                s       = editor.file.history[idx];
+            }
+            editor.file.printline( "> " + s );
+        } else if ( curr == KEY_UP ) {
+            --editor.file.vec_idx;
+            if ( editor.file.vec_idx < 0 ) editor.file.vec_idx = 0;
+            int idx = editor.file.vec_idx;
+            s       = editor.file.history[idx];
+            editor.file.printline( "> " + s );
         } else if ( curr == ERR ) {
             if ( s.empty() ) return false;
             return true;
