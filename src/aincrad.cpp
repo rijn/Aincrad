@@ -42,8 +42,8 @@ int main( int argc, char* argv[] ) {
 
     run_editor();
 
-    // return aincrad_main( argc, argv );
-    return 0;
+    return aincrad_main( argc, argv );
+    // return 0;
 }
 
 int aincrad_main( int argc, char* argv[] ) {
@@ -72,7 +72,8 @@ int aincrad_main( int argc, char* argv[] ) {
     string role                      = _conf_remote.value( "basic", "role" );
     if ( _arg.exist( "role" ) ) role = _arg.value( "role" );
 
-    cout << "role = " << role << endl;
+    // cout << "role = " << role << endl;
+    editor.status.print_filename( "role = " + role );
 
     try {
         if ( role == "server" ) {
@@ -81,7 +82,7 @@ int aincrad_main( int argc, char* argv[] ) {
             auto s = std::make_shared<network::Server>( io_service, endpoint );
             s->start();
 
-            register_processor( s, NULL );
+            register_processor( s, NULL, editor );
 
             io_service.run();
 
@@ -104,7 +105,7 @@ int aincrad_main( int argc, char* argv[] ) {
             std::cout << "Hostname " << c->hostname();
 
             // register event handler
-            register_processor( NULL, c );
+            register_processor( NULL, c, editor );
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
@@ -125,7 +126,8 @@ int aincrad_main( int argc, char* argv[] ) {
 
             if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
 
-            cout << "Server " << addr << ":" << port << endl;
+            // cout << "Server " << addr << ":" << port << endl;
+            editor.status.print_filename( "Server " + addr + ":" + port );
 
             boost::asio::io_service io_service;
 
@@ -134,9 +136,10 @@ int aincrad_main( int argc, char* argv[] ) {
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
             c->set_hostname( util::get_hostname() );
-            std::cout << "Hostname " << c->hostname() << std::endl;
+            // std::cout << "Hostname " << c->hostname() << std::endl;
+            editor.status.print_filename( "Hostname " + c->hostname() );
 
-            register_processor( NULL, c );
+            register_processor( NULL, c, editor );
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
@@ -145,10 +148,11 @@ int aincrad_main( int argc, char* argv[] ) {
 
             std::thread t( [&io_service]() { io_service.run(); } );
 
-            char line[network::Package::max_body_length + 1];
-            while ( std::cin.getline(
-                line, network::Package::max_body_length + 1 ) ) {
-                Operate::process( line, NULL, NULL, NULL, c );
+            // char line[network::Package::max_body_length + 1];
+            std::string line;
+            while ( wgetline( editor.file, line,
+                              network::Package::max_body_length + 1 ) ) {
+                Operate::process( line, NULL, NULL, NULL, c, editor );
             }
 
             c->close();
@@ -209,10 +213,10 @@ void run_editor() {
     //         } break;
     //     }
     // }
-    string line;
-    while ( wgetline( editor.file, line, 257 ) ) {
-        editor.status.print_filename( line );
-    }
+    // string line;
+    // while ( wgetline( editor.file, line, 257 ) ) {
+    //     editor.status.print_filename( line );
+    // }
 }
 
 bool wgetline( WINDOW* w, string& s, size_t n ) {

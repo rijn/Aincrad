@@ -17,6 +17,8 @@
 #include "server.hpp"
 #include "util.h"
 
+#include "editor.h"
+
 using std::vector;
 using std::string;
 using std::cout;
@@ -48,7 +50,7 @@ class Operate {
         network::client_ptr     client;
     };
 
-    static void next( wrapped& w ) {
+    static void next( wrapped& w, Editor& editor ) {
         while ( !w.astack.empty() ) {
             if ( fn_map.find( w.astack.back() ) == fn_map.end() ) {
                 w.vstack.push_back( w.astack.back() );
@@ -56,7 +58,7 @@ class Operate {
             } else {
                 auto command = w.astack.back();
                 w.astack.pop_back();
-                fn_map[command]( w );
+                fn_map[command]( w, editor );
                 break;
             }
         }
@@ -82,8 +84,8 @@ class Operate {
 
     static void process( std::string line, network::package_ptr package,
                          network::session_ptr session,
-                         network::server_ptr  server,
-                         network::client_ptr  client ) {
+                         network::server_ptr server, network::client_ptr client,
+                         Editor& editor ) {
         auto argv = util::split( line, '$' );
         _const( argv, package, session, server, client );
         wrapped w( std::deque<std::string>(), std::deque<std::string>(),
@@ -91,10 +93,10 @@ class Operate {
         for ( auto arg : argv ) {
             w.astack.push_back( arg );
         }
-        next( w );
+        next( w, editor );
     };
 
-    static std::string _pack( wrapped& w ) {
+    static std::string _pack( wrapped& w, Editor& editor ) {
         auto vp = std::accumulate(
             w.vstack.begin(), w.vstack.end(), string( "" ),
             [&]( const string& s1, const string& s2 ) -> string {
@@ -108,37 +110,42 @@ class Operate {
         return ap + ( vp == "" ? "" : "$" ) + vp;
     }
 
-    static void dup( wrapped& w ) {
+    static void dup( wrapped& w, Editor& editor ) {
         w.vstack.push_back( w.vstack.back() );
-        next( w );
+        next( w, editor );
     }
 
-    static void swap( wrapped& w ) {
+    static void swap( wrapped& w, Editor& editor ) {
         auto a = w.vstack.back();
         w.vstack.pop_back();
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( a );
         w.vstack.push_back( b );
-        next( w );
+        next( w, editor );
     }
 
-    static void size( wrapped& w ) {
+    static void size( wrapped& w, Editor& editor ) {
         w.vstack.push_back( std::to_string( w.vstack.size() ) );
-        next( w );
+        next( w, editor );
     }
 
-    static void print( wrapped& w ) {
-        std::cout << std::accumulate(
-                         w.vstack.begin(), w.vstack.end(), string( "" ),
-                         []( const string& s1, const string& s2 ) -> string {
-                             return s1.empty() ? s2 : s1 + " " + s2;
-                         } )
-                  << std::endl;
-        next( w );
+    static void print( wrapped& w, Editor& editor ) {
+        // std::cout << std::accumulate(
+        //                  w.vstack.begin(), w.vstack.end(), string( "" ),
+        //                  []( const string& s1, const string& s2 ) -> string {
+        //                      return s1.empty() ? s2 : s1 + " " + s2;
+        //                  } )
+        //           << std::endl;
+        editor.status.print_filename( std::accumulate(
+            w.vstack.begin(), w.vstack.end(), string( "" ),
+            []( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s1 + " " + s2;
+            } ) );
+        next( w, editor );
     }
 
-    static void print_limit( wrapped& w ) {
+    static void print_limit( wrapped& w, Editor& editor ) {
         auto n = std::atoi( w.vstack.back().c_str() );
         w.vstack.pop_back();
         std::string p;
@@ -147,24 +154,24 @@ class Operate {
             p = *it + " " + p;
         }
         std::cout << p << std::endl;
-        next( w );
+        next( w, editor );
     }
 
-    static void drop( wrapped& w ) {
+    static void drop( wrapped& w, Editor& editor ) {
         auto n = std::atoi( w.vstack.back().c_str() );
         w.vstack.pop_back();
         while ( n-- > 0 ) {
             w.vstack.pop_back();
         }
-        next( w );
+        next( w, editor );
     }
 
-    static void drop_one( wrapped& w ) {
+    static void drop_one( wrapped& w, Editor& editor ) {
         w.vstack.push_back( "1" );
-        drop( w );
+        drop( w, editor );
     }
 
-    static void _if( wrapped& w ) {
+    static void _if( wrapped& w, Editor& editor ) {
         bool                    _else_part = false;
         std::deque<std::string> t_deque;
         std::deque<std::string> f_deque;
@@ -174,7 +181,7 @@ class Operate {
         while ( level > 0 ) {
             if ( w.astack.back() == "if" ) ++level;
             if ( w.astack.back() == "then" ) --level;
-            if (level == 0) break;
+            if ( level == 0 ) break;
             if ( level == 1 && w.astack.back() == "else" ) {
                 _else_part = true;
             } else if ( _else_part ) {
@@ -201,10 +208,10 @@ class Operate {
             }
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void begin( wrapped& w ) {
+    static void begin( wrapped& w, Editor& editor ) {
         std::deque<std::string> inner;
 
         auto it = w.astack.rbegin();
@@ -225,10 +232,10 @@ class Operate {
             inner.pop_back();
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void exit( wrapped& w ) {
+    static void exit( wrapped& w, Editor& editor ) {
         while ( !w.astack.empty() && w.astack.back() != "begin" ) {
             w.astack.pop_back();
         }
@@ -242,77 +249,77 @@ class Operate {
             w.astack.pop_back();
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void to( wrapped& w ) {
+    static void to( wrapped& w, Editor& editor ) {
         auto hostname = w.vstack.back();
         w.vstack.pop_back();
-        auto p = _pack( w );
+        auto p = _pack( w, editor );
         w.server->sent_to( std::make_shared<network::Package>( p ), hostname );
     }
 
-    static void broadcast( wrapped& w ) {
+    static void broadcast( wrapped& w, Editor& editor ) {
         auto block = w.vstack.back();
         w.vstack.pop_back();
-        auto p = _pack( w );
+        auto p = _pack( w, editor );
         w.server->broadcast( std::make_shared<network::Package>( p ),
                              [&]( network::session_ptr session ) {
                                  return block != session->hostname;
                              } );
     }
 
-    static void time( wrapped& w ) {
+    static void time( wrapped& w, Editor& editor ) {
         w.vstack.push_back( util::get_time() );
-        next( w );
+        next( w, editor );
     }
 
-    static void minus( wrapped& w ) {
+    static void minus( wrapped& w, Editor& editor ) {
         long a = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( std::to_string( b - a ) );
-        next( w );
+        next( w, editor );
     }
 
-    static void add( wrapped& w ) {
+    static void add( wrapped& w, Editor& editor ) {
         long a = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( std::to_string( a + b ) );
-        next( w );
+        next( w, editor );
     }
 
-    static void greater( wrapped& w ) {
+    static void greater( wrapped& w, Editor& editor ) {
         long a = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( b > a ? "1" : "0" );
-        next( w );
+        next( w, editor );
     }
 
-    static void equal( wrapped& w ) {
+    static void equal( wrapped& w, Editor& editor ) {
         auto a = w.vstack.back();
         w.vstack.pop_back();
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( b == a ? "1" : "0" );
-        next( w );
+        next( w, editor );
     }
 
-    static void sadd( wrapped& w ) {
+    static void sadd( wrapped& w, Editor& editor ) {
         auto a = w.vstack.back();
         w.vstack.pop_back();
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( a + b );
-        next( w );
+        next( w, editor );
     }
 
-    static void list_host( wrapped& w ) {
+    static void list_host( wrapped& w, Editor& editor ) {
         if ( w.server == nullptr ) return;
         w.vstack.push_back( std::accumulate(
             w.server->get_clients().begin(), w.server->get_clients().end(),
@@ -323,48 +330,48 @@ class Operate {
                            : s1 + "\n[" + s2->get_client_s() + "] " +
                                  s2->hostname;
             } ) );
-        next( w );
+        next( w, editor );
     }
 
-    static void push_host( wrapped& w ) {
+    static void push_host( wrapped& w, Editor& editor ) {
         if ( w.server == nullptr ) return;
         for ( auto it = w.server->get_clients().begin();
               it != w.server->get_clients().end(); ++it ) {
             w.vstack.push_back( ( *it )->hostname );
         }
-        next( w );
+        next( w, editor );
     }
 
-    static void reg( wrapped& w ) {
+    static void reg( wrapped& w, Editor& editor ) {
         w.session->hostname = w.vstack.back();
         w.vstack.pop_back();
-        next( w );
+        next( w, editor );
     }
 
-    static void forward( wrapped& w ) {
-        auto p = _pack( w );
+    static void forward( wrapped& w, Editor& editor ) {
+        auto p = _pack( w, editor );
         if ( w.client )
             w.client->send( std::make_shared<network::Package>( p ) );
     }
 
-    static void system( wrapped& w ) {
+    static void system( wrapped& w, Editor& editor ) {
         auto command = w.vstack.back();
         w.vstack.pop_back();
 
         auto output = util::exec( command.c_str(), false );
         w.vstack.push_back( output );
 
-        next( w );
+        next( w, editor );
     }
 
-    static void set_hostname( wrapped& w ) {
+    static void set_hostname( wrapped& w, Editor& editor ) {
         w.client->set_hostname( w.vstack.back() );
         w.vstack.pop_back();
         w.client->send( std::make_shared<network::Package>(
             "reg$" + w.client->hostname() ) );
     }
 
-    static void run( wrapped& w ) {
+    static void run( wrapped& w, Editor& editor ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
 
@@ -384,7 +391,7 @@ class Operate {
             if ( str.length() == 0 ) {
                 if ( !command.empty() ) {
                     Operate::process( command, w.package, w.session, w.server,
-                                      w.client );
+                                      w.client, editor );
                 }
                 command = "";
                 continue;
@@ -400,10 +407,10 @@ class Operate {
             command = str + ( command.empty() ? "" : "$" ) + command;
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void s_list_host( wrapped& w ) {
+    static void s_list_host( wrapped& w, Editor& editor ) {
         w.astack.clear();
         w.vstack.clear();
         w.astack.push_back( "print" );
@@ -411,10 +418,10 @@ class Operate {
         w.astack.push_back( w.client->hostname() );
         w.astack.push_back( "list_host" );
         w.astack.push_back( "->>" );
-        next( w );
+        next( w, editor );
     }
 
-    static void s_ping( wrapped& w ) {
+    static void s_ping( wrapped& w, Editor& editor ) {
         auto client_hostname = w.vstack.back();
         w.vstack.clear();
         w.astack.clear();
@@ -433,10 +440,10 @@ class Operate {
         w.astack.push_back( client_hostname );
         w.astack.push_back( "->>" );
         w.astack.push_back( "time" );
-        next( w );
+        next( w, editor );
     }
 
-    static void sft( wrapped& w ) {
+    static void sft( wrapped& w, Editor& editor ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
 
@@ -462,10 +469,10 @@ class Operate {
             std::cout << ex.what() << std::endl;
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void popfs( wrapped& w ) {
+    static void popfs( wrapped& w, Editor& editor ) {
         fs::path full_path( fs::initial_path<fs::path>() );
         full_path = fs::system_complete( fs::path( TEMP_PATH ) );
         if ( !fs::exists( full_path ) ) {
@@ -508,10 +515,10 @@ class Operate {
             std::cout << ex.what() << std::endl;
         }
 
-        next( w );
+        next( w, editor );
     }
 
-    static void tree( wrapped& w ) {
+    static void tree( wrapped& w, Editor& editor ) {
         auto dir = w.vstack.back();
         w.vstack.pop_back();
 
@@ -522,7 +529,7 @@ class Operate {
         }
 
         if ( !fs::is_directory( full_path ) ) {
-            next( w );
+            next( w, editor );
             return;
         }
 
@@ -535,11 +542,12 @@ class Operate {
             }
         }
 
-        next( w );
+        next( w, editor );
     }
 
    private:
-    typedef std::map<std::string, std::function<void( Operate::wrapped& )>>
+    typedef std::map<std::string,
+                     std::function<void( Operate::wrapped&, Editor& editor )>>
                  FnMap;
     static FnMap fn_map;
 };
@@ -586,8 +594,8 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"@ping", &Operate::s_ping}};
 
 // register command processor
-void register_processor( network::server_ptr server,
-                         network::client_ptr client ) {
+void register_processor( network::server_ptr server, network::client_ptr client,
+                         Editor& editor ) {
     if ( script_dir == "" ) {
         util::config _conf_remote;
         _conf_remote.read_config( util::get_working_path() + "/.config" );
@@ -595,18 +603,18 @@ void register_processor( network::server_ptr server,
     }
 
     if ( server )
-        server->on( "recv_package", []( network::package_ptr package,
-                                        network::session_ptr session,
-                                        network::server_ptr  server ) {
+        server->on( "recv_package", [&editor]( network::package_ptr package,
+                                               network::session_ptr session,
+                                               network::server_ptr  server ) {
             Operate::process( string( package->body(), package->body_length() ),
-                              package, session, server, NULL );
+                              package, session, server, NULL, editor );
         } );
 
     if ( client )
-        client->on( "recv_package", []( network::package_ptr package,
-                                        network::client_ptr client ) {
+        client->on( "recv_package", [&editor]( network::package_ptr package,
+                                               network::client_ptr client ) {
             Operate::process( string( package->body(), package->body_length() ),
-                              package, NULL, NULL, client );
+                              package, NULL, NULL, client, editor );
         } );
     return;
 }
