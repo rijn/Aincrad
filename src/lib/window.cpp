@@ -48,7 +48,7 @@ void StatusBar::print_aincrad() {
     wmove( win, 0, 0 );
     for ( const auto& i : anicrad ) {
         history.push_back( i );
-        mvwprintw( win, ++y, 0, i.c_str() );
+        mvwprintw( win, y++, 0, i.c_str() );
     }
     last_line = history.size();
     wrefresh( win );
@@ -64,22 +64,22 @@ void StatusBar::print_filename( const string& file_name ) {
     int next_row  = currrow + num_rows + 1;
     int distance  = next_row - height;
 
-    int i = 0;
     if ( distance > 0 ) {
-        for ( auto it = history.begin() + last_line - height;
-              it != history.begin() + last_line - 1; it++ ) {
+        int i = 0;
+        for ( auto it = history.begin() + last_line - height + distance - 1;
+              it != history.begin() + last_line; it++ ) {
             wmove( win, i++, 0 );
             wclrtoeol( win );  // erase current line
             waddnstr( win, ( *it ).c_str(), -1 );
         }
+        currrow = height - distance + 1;
+    } else {
+        wmove( win, currrow, 0 );
+        wclrtoeol( win );  // erase current line
+        waddnstr( win, file_name.c_str(), -1 );
+        // n is -1, then the entire string will be added
+        currrow = next_row;
     }
-    currrow = next_row;
-
-    wmove( win, currrow, 0 );
-    wclrtoeol( win );  // erase current line
-
-    waddnstr( win, file_name.c_str(), -1 );
-    // n is -1, then the entire string will be added
 
     wrefresh( win );
 }

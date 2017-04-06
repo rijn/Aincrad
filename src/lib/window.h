@@ -73,7 +73,7 @@ class StatusBar : public Window {
     size_t              height;
 
    private:
-    size_t currrow = 11;
+    size_t currrow = 10;
 };
 
 class FileContent : public Window {
