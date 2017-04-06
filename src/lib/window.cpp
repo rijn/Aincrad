@@ -47,258 +47,39 @@ void StatusBar::print_aincrad() {
     int y = 0;
     wmove( win, 0, 0 );
     for ( const auto& i : anicrad ) {
+        history.push_back( i );
         mvwprintw( win, ++y, 0, i.c_str() );
     }
+    last_line = history.size();
     wrefresh( win );
 }
 
 void StatusBar::print_filename( const string& file_name ) {
     if ( !is_init ) return;
-    // wattron( win, A_REVERSE );  // print in reverse color
+    history.push_back( file_name );
+    last_line = history.size();
+
+    int num_chars = file_name.size();
+    int num_rows  = num_chars / max_col;
+    int next_row  = currrow + num_rows + 1;
+    int distance  = next_row - height;
+
+    int i = 0;
+    if ( distance > 0 ) {
+        for ( auto it = history.begin() + last_line - height;
+              it != history.begin() + last_line - 1; it++ ) {
+            wmove( win, i++, 0 );
+            wclrtoeol( win );  // erase current line
+            waddnstr( win, ( *it ).c_str(), -1 );
+        }
+    }
+    currrow = next_row;
+
     wmove( win, currrow, 0 );
     wclrtoeol( win );  // erase current line
 
     waddnstr( win, file_name.c_str(), -1 );
     // n is -1, then the entire string will be added
-    int num_chars = file_name.size();
-    int num_rows  = num_chars / max_col;
-    currrow += num_rows + 1;
 
     wrefresh( win );
-    // wattroff( win, A_REVERSE );
 }
-
-// void FileContent::set_file_content( list<ClientLineEntry>* fc, int row,
-//                                     int col ) {
-//     file_content = fc;
-//     currrow      = fc->begin();
-//     currrow_num  = row;
-//     while ( row-- ) ++currrow;
-//     currcol = col;
-//     wmove( win, row, col );
-// }
-
-// list<ClientLineEntry>::iterator FileContent::get_line( int row ) {
-//     auto ret = file_content->begin();
-//     while ( row-- ) ++ret;
-//     return ret;
-// }
-
-// void FileContent::refresh_file_content( int row ) {
-//     if ( row != -1 ) {
-//         Window::printline( get_line( row )->s, row );
-//         wmove( win, currrow_num, currcol );
-//         wrefresh( win );
-//         return;
-//     }
-//     werase( win );
-//     wmove( win, 0, 0 );
-//     for ( const auto& l : *file_content )
-//         mvwaddnstr( win, ++row, 0, l.s.c_str(), max_col );
-//     wrefresh( win );
-//     currrow = get_line( currrow_num );
-//     if ( ( currrow->s ).size() < currcol ) {
-//         currcol = currrow->s.size();
-//     }
-//     wmove( win, currrow_num, currcol );
-// }
-
-// void FileContent::refresh_file_content( list<ClientLineEntry>::iterator&
-// iter,
-//                                         int                              row
-//                                         ) {
-//     Window::printline( iter->s, row );
-//     wmove( win, currrow_num, currcol );
-//     wrefresh( win );
-// }
-
-// void FileContent::refresh_file_content( const string& line, int row ) {
-//     Window::printline( line, row );
-//     wmove( win, currrow_num, currcol );
-//     wrefresh( win );
-// }
-
-// void FileContent::refresh_currrow() {
-//     Window::printline( currrow->s, currrow_num );
-//     wmove( win, currrow_num, currcol );
-//     wrefresh( win );
-// }
-
-// int FileContent::scroll_up() {
-//     if ( currrow_num == 0 ) {
-//         if ( currrow->linenum )
-//             return -1;  // ask to retieve the line before
-//         else
-//             return -2;  // we are at the front of file
-//     }
-//     --currrow;  // move back a line
-//     if ( ( currrow->s ).size() < currcol ) {
-//         currcol = currrow->s.size();
-//     }
-//     wmove( win, --currrow_num, currcol );
-//     return 1;
-// }
-
-// int FileContent::scroll_down() {
-//     if ( currrow_num == max_row - 1 ) {
-//         if ( currrow->linenum == num_file_lines )
-//             return -2;
-//         else
-//             return -1;  // ask to retieve the line after
-//     }
-//     if ( ++currrow == file_content->end() ) {
-//         --currrow;
-//         return -2;
-//     }
-//     if ( ( currrow->s ).size() < currcol ) {
-//         currcol = currrow->s.size();
-//     }
-//     wmove( win, ++currrow_num, currcol );
-//     return 1;
-// }
-
-// int FileContent::scroll_right() {
-//     if ( currcol >= max_col || currcol == currrow->s.size() ) return 0;
-//     wmove( win, currrow_num, ++currcol );
-//     return 1;
-// }
-
-// int FileContent::scroll_left() {
-//     if ( currcol == 0 ) return 0;
-//     --currcol;
-//     wmove( win, currrow_num, currcol );
-//     return 1;
-// }
-
-// void FileContent::insertchar( const char& c ) {
-//     if ( currcol > max_col || currcol > currrow->s.size() ) return;
-//     currrow->s.insert( currrow->s.begin() + currcol, c );
-//     refresh_currrow();
-//     wmove( win, currrow_num, ++currcol );
-// }
-
-// void FileContent::delchar() {
-//     if ( currrow->s.empty() || currcol == 0 ) return;
-//     if ( currrow->s.size() < currcol ) {
-//         PERROR( "delete character past end of line" );
-//         return;
-//     }
-//     --currcol;
-//     currrow->s.erase( currrow->s.begin() + currcol );
-//     refresh_currrow();
-//     wmove( win, currrow_num, currcol );
-// }
-
-// void FileContent::add_line() {
-//     // prevent client fro inserting new line at the end
-//     // of editor
-//     if ( !file_content || currrow_num == max_row - 1 ) return;
-//     // the contents in original line is splited based on
-//     // currcol
-//     string temp( currrow->s.begin() + currcol, currrow->s.end() );
-//     currrow->s.erase( currrow->s.begin() + currcol, currrow->s.end() );
-//     Window::printline( currrow->s, currrow_num );
-//     auto iter = currrow;
-//     currrow   = file_content->emplace( ++iter, std::move( temp ),
-//                                      currrow->linenum + 1 );
-//     ++currrow_num;
-//     Window::printline( currrow->s, currrow_num );
-//     if ( file_content->size() > max_row ) file_content->pop_back();
-//     iter = currrow;
-//     ++iter;  // in case iter get pop out
-//     int y = currrow_num + 1;
-
-//     currcol = 0;
-//     while ( iter != file_content->end() ) {
-//         Window::printline( iter->s, y );
-//         ++( iter->linenum );
-//         ++iter;
-//         ++y;
-//     }
-//     // refresh entire file
-//     // refresh_file_content(-1);
-
-//     wmove( win, currrow_num, currcol );
-// }
-
-// void FileContent::insert_line( const string& s, size_t linenum ) {
-//     if ( !file_content ) return;
-//     // the contents in original line is splited based on
-//     // currcol
-//     auto   iter = file_content->begin();
-//     size_t y    = 0;
-//     for ( ; iter != file_content->end(); ++iter, ++y ) {
-//         if ( iter->linenum == linenum ) {
-//             ( file_content )->emplace( iter, s, linenum );
-//             break;
-//         }
-//     }
-//     for ( ; iter != file_content->end(); ++iter ) {
-//         ++( iter->linenum );
-//     }
-//     if ( file_content->size() > max_row ) file_content->pop_back();
-//     ++num_file_lines;
-//     // refresh entire file
-//     refresh_file_content( -1 );
-//     if ( currrow_num <= y ) ++currrow_num;
-//     wmove( win, currrow_num, currcol );
-//     wrefresh( win );
-// }
-
-// ssize_t FileContent::del_line() {
-//     if ( !file_content || currrow_num == 0 || file_content->size() == 1 )
-//         return -1;
-//     currrow = file_content->erase( currrow );
-//     for ( auto iter = currrow; iter != file_content->end(); ++iter )
-//         --( iter->linenum );
-//     --currrow;
-//     --currrow_num;
-//     --num_file_lines;
-//     currcol = 0;
-//     if ( num_file_lines > max_row - 1 + file_content->front().linenum )
-//         return 1;
-//     refresh_file_content( -1 );
-//     return 0;
-// }
-
-// ssize_t FileContent::delete_line( size_t linenum ) {
-//     if ( !file_content ) return -1;
-//     int r, c;
-//     getyx( win, r, c );
-//     auto iter = file_content->begin();
-//     for ( ; iter != file_content->end(); ++iter ) {
-//         if ( iter->linenum == linenum ) {
-//             if ( currrow == iter ) {
-//                 currrow = file_content->erase( iter );
-//                 iter    = currrow;
-//             } else
-//                 iter = file_content->erase( iter );
-//             break;
-//         }
-//     }
-//     for ( ; iter != file_content->end(); ++iter ) --( iter->linenum );
-//     if ( num_file_lines > max_row - 1 + file_content->front().linenum )
-//         return 1;
-//     refresh_file_content( -1 );
-//     set_pos( r - 1, c );
-//     wrefresh( win );
-//     return 0;
-// }
-
-// void FileContent::set_pos( int row, int col ) {
-//     currrow     = get_line( row );
-//     currrow_num = row;
-//     if ( static_cast<int>( currrow->s.size() ) < col )
-//         currcol = currrow->s.size();
-//     else
-//         currcol = col;
-//     wmove( win, currrow_num, currcol );
-//     wrefresh( win );
-// }
-
-// const string& FileContent::get_prevline() const {
-//     if ( !file_content || currrow == file_content->begin() ) return
-//     currrow->s;
-//     auto iter = currrow;
-//     return ( --iter )->s;
-// }

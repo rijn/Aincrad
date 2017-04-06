@@ -17,7 +17,6 @@ class Editor {
         return is_init;
     }
 
-    // FileList    dir;     // directory panel
     FileContent file;    // file contents
     StatusBar   status;  // status_bar
 

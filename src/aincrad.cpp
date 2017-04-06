@@ -86,7 +86,13 @@ int aincrad_main( int argc, char* argv[] ) {
 
             io_service.run();
 
-            while ( 1 ) sleep( 1 );
+            // for ( ;; ) {
+            //     if ( wgetch( stdscr ) == KEY_CTRL_C ) {
+            //         endwin();
+            //         std::exit( 0 );
+            //         break;
+            //     }
+            // }
         }
 
         if ( role == "client" ) {
@@ -178,45 +184,6 @@ void run_editor() {
     refresh();
     editor.status.print_aincrad();
     editor.file.printline( "> " );
-
-    // int c;
-    // for ( ;; ) {
-    //     c = wgetch( editor.file );
-    //     if ( std::isprint( c ) ) {
-    //         waddch( editor.file, c );
-    //         continue;
-    //     }
-    //     switch ( c ) {
-    //         case KEY_CTRL_C:
-    //             endwin();
-    //             std::exit( 0 );
-    //             break;
-    //         case KEY_LEFT: {
-    //             int x, y;
-    //             getyx( editor.file, y, x );
-    //             wmove( editor.file, y, --x );
-    //         } break;
-    //         case KEY_RIGHT: {
-    //             int x, y;
-    //             getyx( editor.file, y, x );
-    //             wmove( editor.file, y, ++x );
-    //         } break;
-    //         case KEY_UP: {
-    //             int x, y;
-    //             getyx( editor.file, y, x );
-    //             wmove( editor.file, --y, x );
-    //         } break;
-    //         case KEY_DOWN: {
-    //             int x, y;
-    //             getyx( editor.file, y, x );
-    //             wmove( editor.file, ++y, x );
-    //         } break;
-    //     }
-    // }
-    // string line;
-    // while ( wgetline( editor.file, line, 257 ) ) {
-    //     editor.status.print_filename( line );
-    // }
 }
 
 bool wgetline( WINDOW* w, string& s, size_t n ) {
