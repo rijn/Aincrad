@@ -5,6 +5,9 @@
 #include "config.h"
 #include "util.h"
 
+#include <ncurses.h>
+#include <string>
+
 using namespace std;
 using namespace util;
 
@@ -21,3 +24,4 @@ int aincrad_main( int argc, char* argv[] );
 
 void segfault_handler( int sig );
 void run_editor();
+bool wgetline( WINDOW* w, string& s, size_t n = 0 );

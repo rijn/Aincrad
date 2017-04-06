@@ -72,29 +72,13 @@ class StatusBar : public Window {
         return Window::init( maxrow - 2, maxcol, 0, 0 );
     }
 
+    void print_aincrad();
     void print_filename( const string& file_name );
-    void print_status( const string& status );
-
-    string get_filename() const {
-        return filename;
-    }
 
    private:
-    string filename;
-};
-
-class FileList : public Window {
-   public:
-    void print_filelist( const vector<string>& file_list, ssize_t sel = -1 );
-    void scroll_up( const vector<string>& file_list );
-    void scroll_down( const vector<string>& file_list );
-
-    int get_selection() const {
-        return selected;
-    }
-
-   private:
-    size_t selected = 0;
+    // string filename;
+    size_t currrow = 11;
+    // size_t currcol = 0;
 };
 
 class FileContent : public Window {
@@ -141,15 +125,11 @@ class FileContent : public Window {
     // bool isediting = false;
     // vector<bool> other_status_vec;
 
-    // private:
+   private:
     // list<ClientLineEntry>*          file_content;
     // list<ClientLineEntry>::iterator currrow;
     // size_t currrow_num;
     // size_t currcol;
     // size_t num_file_lines;
 };
-
-// class InputField : public Window {
-
-// };
 #endif

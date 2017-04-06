@@ -41,40 +41,6 @@ int main( int argc, char* argv[] ) {
     // -------------- done init ----------------
 
     run_editor();
-    int c;
-    for ( ;; ) {
-        c = wgetch( editor.file );
-        if ( std::isprint( c ) ) {
-            waddch( editor.file, c );
-            continue;
-        }
-        switch ( c ) {
-            case KEY_CTRL_C:
-                endwin();
-                std::exit( 0 );
-                break;
-            case KEY_LEFT: {
-                int x, y;
-                getyx( editor.file, y, x );
-                wmove( editor.file, y, --x );
-            } break;
-            case KEY_RIGHT: {
-                int x, y;
-                getyx( editor.file, y, x );
-                wmove( editor.file, y, ++x );
-            } break;
-            case KEY_UP: {
-                int x, y;
-                getyx( editor.file, y, x );
-                wmove( editor.file, --y, x );
-            } break;
-            case KEY_DOWN: {
-                int x, y;
-                getyx( editor.file, y, x );
-                wmove( editor.file, ++y, x );
-            } break;
-        }
-    }
 
     // return aincrad_main( argc, argv );
     return 0;
@@ -206,7 +172,92 @@ void run_editor() {
     editor.init( max_row, max_col );
     erase();
     refresh();
-    editor.status.print_filename( AINCRAD );
-    // colorize::make_color( colorize::LIGHT_BLUE, AINCRAD ) );
-    editor.file.printline( "command", 0 );
+    editor.status.print_aincrad();
+    editor.file.printline( "> ", 0 );
+
+    // int c;
+    // for ( ;; ) {
+    //     c = wgetch( editor.file );
+    //     if ( std::isprint( c ) ) {
+    //         waddch( editor.file, c );
+    //         continue;
+    //     }
+    //     switch ( c ) {
+    //         case KEY_CTRL_C:
+    //             endwin();
+    //             std::exit( 0 );
+    //             break;
+    //         case KEY_LEFT: {
+    //             int x, y;
+    //             getyx( editor.file, y, x );
+    //             wmove( editor.file, y, --x );
+    //         } break;
+    //         case KEY_RIGHT: {
+    //             int x, y;
+    //             getyx( editor.file, y, x );
+    //             wmove( editor.file, y, ++x );
+    //         } break;
+    //         case KEY_UP: {
+    //             int x, y;
+    //             getyx( editor.file, y, x );
+    //             wmove( editor.file, --y, x );
+    //         } break;
+    //         case KEY_DOWN: {
+    //             int x, y;
+    //             getyx( editor.file, y, x );
+    //             wmove( editor.file, ++y, x );
+    //         } break;
+    //     }
+    // }
+    string line;
+    while ( wgetline( editor.file, line, 257 ) ) {
+        editor.status.print_filename( line );
+    }
+}
+
+bool wgetline( WINDOW* w, string& s, size_t n ) {
+    s.clear();
+    int orig_y, orig_x;
+    getyx( w, orig_y, orig_x );
+    int curr;  // current character to read
+    while ( !n || s.size() != n ) {
+        curr = wgetch( w );
+        if ( std::isprint( curr ) ) {
+            ++orig_x;
+            if ( orig_x <= max_col ) {
+                waddch( w, curr );
+                wrefresh( w );
+            }
+
+            s.push_back( curr );
+
+        } else if ( !s.empty() && ( curr == KEY_BACKSPACE || curr == KEY_DC ||
+                                    curr == KEY_DELETE || curr == '\b' ) ) {
+            --orig_x;
+            if ( orig_x <= max_col ) {
+                mvwdelch( w, orig_y, orig_x );
+                wrefresh( w );
+            }
+            s.pop_back();
+
+        } else if ( curr == KEY_ENTER || curr == '\n' ) {
+            wclrtoeol( w );  // erase current line
+            editor.file.printline( "> ", 0 );
+            return true;
+        } else if ( curr == KEY_LEFT ) {
+            wmove( w, orig_y, --orig_x );
+        } else if ( curr == KEY_RIGHT ) {
+            wmove( w, orig_y, ++orig_x );
+        } else if ( curr == KEY_DOWN || curr == KEY_UP ) {
+            continue;
+        } else if ( curr == ERR ) {
+            if ( s.empty() ) return false;
+            return true;
+        } else if ( curr == KEY_CTRL_Q || curr == KEY_CTRL_C ) {
+            endwin();
+            std::exit( 0 );
+            // return false;
+        }
+    }
+    return true;
 }

@@ -6,34 +6,17 @@
 using std::vector;
 using std::string;
 
-#define AINCRAD                                                                                           \
-    "   ▄▄   ▄▄▄▄▄  ▄▄   ▄   ▄▄▄  ▄▄▄▄▄    ▄▄   ▄▄▄▄  \n" \
-    "   ██     █    █▀▄  █ ▄▀   ▀ █   ▀█   ██   █   ▀▄\n"             \
-    "  █  █    █    █ █▄ █ █      █▄▄▄▄▀  █  █  █    █\n"             \
-    "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █    █\n"             \
-    " █    █ ▄▄█▄▄  █   ██  ▀▄▄▄▀ █    ▀ █    █ █▄▄▄▀ \n"
-
-vector<string> anicrad =
-    // {"   ▄▄   ▄▄▄▄▄  ▄▄   ▄   ▄▄▄  ▄▄▄▄▄    ▄▄   ▄▄▄▄  ",
-    //                          "   ██     █    █▀▄  █ ▄▀   ▀ █   ▀█   ██   █
-    //                          ▀▄",
-    //                          "  █  █    █    █ █▄ █ █      █▄▄▄▄▀  █  █  █
-    //                          █",
-    //                          "  █▄▄█    █    █  █ █ █      █   ▀▄  █▄▄█  █
-    //                          █",
-    //                          " █    █ ▄▄█▄▄  █   ██  ▀▄▄▄▀ █    ▀ █    █
-    //                          █▄▄▄▀ "};
-
-    {"  ______   __                                                __ ",
-     " /      \\ |  \\                                              |  \\",
-     "|  $$$$$$\\ \\$$ _______    _______   ______    ______    ____| $$",
-     "| $$__| $$|  \\|       \\  /       \\ /      \\  |      \\  /      $$",
-     "| $$    $$| $$| $$$$$$$\\|  $$$$$$$|  $$$$$$\\  \\$$$$$$\\|  $$$$$$$",
-     "| $$$$$$$$| $$| $$  | $$| $$      | $$   \\$$ /      $$| $$  | $$",
-     "| $$  | $$| $$| $$  | $$| $$_____ | $$      |  $$$$$$$| $$__| $$",
-     "| $$  | $$| $$| $$  | $$ \\$$     \\| $$       \\$$    $$ \\$$    $$",
-     " \\$$   \\$$ \\$$ \\$$   \\$$  \\$$$$$$$ \\$$        \\$$$$$$$  "
-     "\\$$$$$$$"};
+vector<string> anicrad = {
+    "  ______   __                                                __ ",
+    " /      \\ |  \\                                              |  \\",
+    "|  $$$$$$\\ \\$$ _______    _______   ______    ______    ____| $$",
+    "| $$__| $$|  \\|       \\  /       \\ /      \\  |      \\  /      $$",
+    "| $$    $$| $$| $$$$$$$\\|  $$$$$$$|  $$$$$$\\  \\$$$$$$\\|  $$$$$$$",
+    "| $$$$$$$$| $$| $$  | $$| $$      | $$   \\$$ /      $$| $$  | $$",
+    "| $$  | $$| $$| $$  | $$| $$_____ | $$      |  $$$$$$$| $$__| $$",
+    "| $$  | $$| $$| $$  | $$ \\$$     \\| $$       \\$$    $$ \\$$    $$",
+    " \\$$   \\$$ \\$$ \\$$   \\$$  \\$$$$$$$ \\$$        \\$$$$$$$  "
+    "\\$$$$$$$"};
 
 bool Window::init( int h, int w, int starty, int startx ) {
     if ( is_init ) return false;
@@ -59,73 +42,30 @@ void Window::clear() {
     wrefresh( win );
 }
 
+void StatusBar::print_aincrad() {
+    if ( !is_init ) return;
+    int y = 0;
+    wmove( win, 0, 0 );
+    for ( const auto& i : anicrad ) {
+        mvwprintw( win, ++y, 0, i.c_str() );
+    }
+    wrefresh( win );
+}
+
 void StatusBar::print_filename( const string& file_name ) {
     if ( !is_init ) return;
     // wattron( win, A_REVERSE );  // print in reverse color
-    int y = 0;
-    wmove( win, 0, 0 );
-    // wclrtoeol( win );
-    // waddch( win, ' ' );
-    // std::cout << anicrad << std::endl;
+    wmove( win, currrow, 0 );
+    wclrtoeol( win );  // erase current line
 
-    for ( const auto& i : anicrad ) {
-        // if ( i == '\n' ) {
-        //     y++;
-        //     wmove( win, y, 0 );
-        //     continue;
-        // }
+    waddnstr( win, file_name.c_str(), -1 );
+    // n is -1, then the entire string will be added
+    int num_chars = file_name.size();
+    int num_rows  = num_chars / max_col;
+    currrow += num_rows + 1;
 
-        // waddch( win, i );
-        // std::cout << i << std::endl;
-        // wmove( win, ++y, 0 );
-        mvwprintw( win, ++y, 0, i.c_str() );
-    }
-    // waddnstr( win, file_name.c_str(), file_name.size() );
-    // for ( size_t i = file_name.size() + 1; i < max_col; ++i )
-    //     waddch( win, ' ' );
     wrefresh( win );
     // wattroff( win, A_REVERSE );
-    filename = file_name;
-}
-
-void StatusBar::print_status( const string& status ) {
-    if ( !is_init ) return;
-    Window::printline( status, 1, 1 );
-}
-
-void FileList::print_filelist( const vector<string>& file_list, ssize_t sel ) {
-    size_t chosen;
-    if ( sel == -1 )
-        chosen = selected;
-    else
-        chosen     = sel;
-    size_t maxline = file_list.size() < max_row ? file_list.size() : max_row;
-    if ( !is_init || chosen > maxline ) return;
-
-    curs_set( 0 );
-    werase( win );
-    for ( size_t i = 0; i < maxline; ++i ) {
-        if ( i != chosen )
-            mvwaddnstr( win, i, 0, file_list[i].c_str(), max_col );
-    }
-
-    // default is to select the first item
-    wattron( win, A_REVERSE );
-    mvwaddnstr( win, chosen, 0, file_list[chosen].c_str(), max_col );
-    wattroff( win, A_REVERSE );
-    selected = chosen;
-
-    wrefresh( win );
-}
-
-void FileList::scroll_up( const vector<string>& file_list ) {
-    if ( selected == 0 ) return;
-    print_filelist( file_list, --selected );
-}
-
-void FileList::scroll_down( const vector<string>& file_list ) {
-    if ( selected >= file_list.size() - 1 ) return;
-    print_filelist( file_list, ++selected );
 }
 
 // void FileContent::set_file_content( list<ClientLineEntry>* fc, int row,
