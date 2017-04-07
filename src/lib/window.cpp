@@ -56,21 +56,24 @@ void StatusBar::print_aincrad() {
 
 void StatusBar::print_filename( const string& file_name ) {
     if ( !is_init ) return;
-    history.push_back( file_name );
+    vector<string> splited = util::split( file_name, '\n' );
+
+    history.insert( history.end(), splited.begin(), splited.end() );
+    // history.push_back( file_name );
     last_line = history.size();
 
-    int num_chars = file_name.size();
-    int num_rows  = num_chars / max_col;
-    int next_row  = currrow + num_rows + 1;
-    int distance  = next_row - height;
+    // int num_chars = file_name.size();
+    // int num_rows  = num_chars / max_col;
+    int next_row = currrow + splited.size();
+    int distance = next_row - height;
 
     if ( distance > 0 ) {
         int i = 0;
-        for ( auto it = history.begin() + last_line - height + distance - 1;
+        for ( auto it = history.begin() + last_line - height;
               it != history.begin() + last_line; it++ ) {
             wmove( win, i++, 0 );
             wclrtoeol( win );  // erase current line
-            waddnstr( win, ( *it ).c_str(), -1 );
+            waddnstr( win, ( *it ).c_str(), max_col );
         }
         currrow = height - distance + 1;
     } else {
