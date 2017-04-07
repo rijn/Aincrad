@@ -194,22 +194,23 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
     while ( !n || s.size() != n ) {
         curr = wgetch( w );
         if ( std::isprint( curr ) ) {
-            ++orig_x;
-            if ( orig_x <= max_col ) {
-                waddch( w, curr );
+            if ( ++orig_x <= max_col ) {
+                s.insert( s.begin() + ( orig_x - 3 ), curr );
+                wmove( w, 0, 2 );
+                wclrtoeol( w );
+                waddnstr( w, s.c_str(), max_col );
+                wmove( w, orig_y, orig_x );
                 wrefresh( w );
             }
 
-            s.push_back( curr );
-
-        } else if ( !s.empty() && ( curr == KEY_BACKSPACE || curr == KEY_DC ||
-                                    curr == KEY_DELETE || curr == '\b' ) ) {
-            --orig_x;
-            if ( orig_x <= max_col ) {
+        } else if ( !s.empty() && ( orig_x > 2 ) &&
+                    ( curr == KEY_BACKSPACE || curr == KEY_DC ||
+                      curr == KEY_DELETE || curr == '\b' ) ) {
+            if ( --orig_x <= max_col ) {
                 mvwdelch( w, orig_y, orig_x );
                 wrefresh( w );
+                s.erase( s.begin() + orig_x - 2 );
             }
-            s.pop_back();
 
         } else if ( curr == KEY_ENTER || curr == '\n' ) {
             if ( !s.empty() ) {
@@ -220,9 +221,17 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
             editor.file.printline( "> " );
             return true;
         } else if ( curr == KEY_LEFT ) {
-            wmove( w, orig_y, --orig_x );
+            if ( --orig_x < 2 ) {
+                orig_x = 2;
+            } else {
+                wmove( w, orig_y, orig_x );
+            }
         } else if ( curr == KEY_RIGHT ) {
-            wmove( w, orig_y, ++orig_x );
+            if ( ++orig_x > static_cast<int>( s.size() + 2 ) ) {
+                orig_x -= 1;
+            } else {
+                wmove( w, orig_y, orig_x );
+            }
         } else if ( curr == KEY_DOWN ) {
             ++editor.file.vec_idx;
             if ( editor.file.vec_idx >= (int)editor.file.history.size() ) {
