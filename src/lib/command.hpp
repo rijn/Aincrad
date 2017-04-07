@@ -4,6 +4,7 @@
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/algorithm/string.hpp>  
 #include <functional>
 #include <iostream>
 #include <map>
@@ -11,7 +12,10 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include <boost/algorithm/string.hpp>  
+#include <iterator>
+#include <sstream>
+#include <algorithm>
+#include <regex>
 
 #include "client.hpp"
 #include "config.h"
@@ -152,7 +156,30 @@ class Operate {
         next(w);
     }
 
-//    static void split()
+    static void split( wrapped& w ){
+        auto s = w.vstack.back();
+        w.vstack.pop_back();
+        auto b = w.vstack.back();
+        w.vstack.pop_back();
+        std::regex e (b);
+        string res = std::regex_replace (s,e,"$");
+        auto argv = util::split( res, '$' );
+        auto it = argv.begin();
+        for (; it != argv.end(); it++){
+            w.vstack.push_back( *it );
+        }
+        next(w);
+    }
+
+    static void newline( wrapped& w ){
+        w.vstack.push_back("\n");
+        next(w);
+    }
+
+    static void empty( wrapped& w ){
+        w.vstack.push_back("");
+        next(w);
+    }
 
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
@@ -604,6 +631,10 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"drop", &Operate::drop},
                                   {"lwc", &Operate::lwc},
                                   {"upc", &Operate::upc},
+                                  {"split", &Operate::split},
+                                  {"newline", &Operate::newline},
+                                  {"\\n", &Operate::newline},
+                                  {"_", &Operate::empty},
                                   // archimatic operation
                                   {"-", &Operate::minus},
                                   {"+", &Operate::add},

@@ -60,6 +60,7 @@ drop_one               # pop one elements
 +                      # add
 >                      # greater, if false will push a 0 into vstack
 ==                     # equal, if false will push a 0 into vstack
+lwc / upc              # lower and upper case
 
 if (else, then)        # if
 begin (end)            # loop
