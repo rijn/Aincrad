@@ -222,17 +222,20 @@ class Operate {
     }
 
     static void print( wrapped& w ) {
-        // std::cout << std::accumulate(
-        //                  w.vstack.begin(), w.vstack.end(), string( "" ),
-        //                  []( const string& s1, const string& s2 ) -> string {
-        //                      return s1.empty() ? s2 : s1 + " " + s2;
-        //                  } )
-        //           << std::endl;
-        w.editor->status.print_filename( std::accumulate(
-            w.vstack.begin(), w.vstack.end(), string( "" ),
-            []( const string& s1, const string& s2 ) -> string {
-                return s1.empty() ? s2 : s1 + " " + s2;
-            } ) );
+        if ( w.editor )
+            w.editor->status.print_filename( std::accumulate(
+                w.vstack.begin(), w.vstack.end(), string( "" ),
+                []( const string& s1, const string& s2 ) -> string {
+                    return s1.empty() ? s2 : s1 + " " + s2;
+                } ) );
+        else
+            std::cout << std::accumulate(
+                             w.vstack.begin(), w.vstack.end(), string( "" ),
+                             []( const string& s1,
+                                 const string& s2 ) -> string {
+                                 return s1.empty() ? s2 : s1 + " " + s2;
+                             } )
+                      << std::endl;
     }
 
     static void print_limit( wrapped& w ) {
@@ -243,7 +246,10 @@ class Operate {
               ++it, --n ) {
             p = *it + " " + p;
         }
-        w.editor->status.print_filename(p);
+        if ( w.editor )
+            w.editor->status.print_filename( p );
+        else
+            std::cout << p << std::endl;
     }
 
     static void drop( wrapped& w ) {
