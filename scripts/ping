@@ -1,6 +1,7 @@
 #TARGET
 
 TARGET
+lwc
 server
 ==
 if

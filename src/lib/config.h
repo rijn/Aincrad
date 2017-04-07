@@ -19,6 +19,6 @@ class config {
                               std::string const& entry ) const;
     bool exist( std::string const& section, std::string const& entry ) const;
 };
-};
+}
 
 #endif

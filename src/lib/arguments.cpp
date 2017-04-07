@@ -119,7 +119,7 @@ bool arguments::process_arguments( int& argc, char**& argv ) {
     }
 
     return true;
-};
+}
 
 std::string const& arguments::value( std::string const& entry ) const {
     std::map<std::string, std::string>::const_iterator ci =
@@ -138,4 +138,4 @@ bool arguments::exist( std::string const& entry ) const {
 
     return true;
 }
-};
+}

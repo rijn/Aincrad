@@ -177,4 +177,4 @@ class Package : public std::enable_shared_from_this<Package> {
 };
 
 typedef std::shared_ptr<Package> package_ptr;
-};
+}

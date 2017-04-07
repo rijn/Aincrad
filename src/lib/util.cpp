@@ -196,4 +196,4 @@ bool is_number( const std::string& s ) {
                              return !std::isdigit( c );
                          } ) == s.end();
 }
-};
+}
