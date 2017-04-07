@@ -76,6 +76,7 @@ broadcast except       # broadcast command to all clients except specific host
 set_hostname name      # set host name
 list_host              # list clients
 push_host              # push clients into vstack
+promise                # synchronize the commands flow on different ends
 
 tree dir               # push relative path into vstack recursively
 sf / sendfile path     # send file / send file to
