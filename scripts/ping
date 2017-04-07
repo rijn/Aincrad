@@ -15,7 +15,6 @@ swap
 ns
 server
 connected
-print
 else
 ->>
 time
@@ -30,6 +29,20 @@ TARGET
 connected
 this
 ->
-print
 then
+begin
+size
+1
+>
+if
+ 
+++
+swap
+++
+else
+exit
+then
+end
+*
+
 

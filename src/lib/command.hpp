@@ -129,7 +129,6 @@ class Operate {
             w.astack.push_back( arg );
         }
         next( w );
-        std::cout << "[process]" << w.ostack.size() << std::endl;
         return w.ostack;
     };
 
@@ -435,6 +434,10 @@ class Operate {
             "reg$" + w.client->hostname() ) );
     }
 
+    static void hostname( wrapped& w ) {
+        w.vstack.push_back( w.client ? w.client->hostname() : "server" );
+    }
+
     static void run( wrapped& w ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
@@ -661,6 +664,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"time", &Operate::time},
                                   {"broadcast", &Operate::broadcast},
                                   {"set_hostname", &Operate::set_hostname},
+                                  {"hostname", &Operate::hostname},
                                   {"list_host", &Operate::list_host},
                                   {"push_host", &Operate::push_host},
                                   {"run", &Operate::run},
