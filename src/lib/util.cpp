@@ -7,6 +7,7 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
 #include <vector>
 
@@ -195,5 +196,28 @@ bool is_number( const std::string& s ) {
     return !s.empty() && std::find_if( s.begin(), s.end(), []( char c ) {
                              return !std::isdigit( c );
                          } ) == s.end();
+}
+
+std::string easy_type( std::string str ) {
+    std::vector<std::string> output_v;
+    std::string              temp;
+    for ( size_t i = 0; i < str.length(); i++ ) {
+        char c = str[i];
+        if ( c == ' ' ) {
+            output_v.push_back( temp + "$" );
+            temp = "";
+        } else if ( c == '\"' ) {
+            i++;
+            while ( str[i] != '\"' ) {
+                temp = temp + str[i];
+                i++;
+            }
+        } else {
+            temp = temp + str[i];
+        }
+    }
+    if ( temp != "" ) output_v.push_back( temp );
+
+    return std::accumulate( output_v.begin(), output_v.end(), string( "" ) );
 }
 }
