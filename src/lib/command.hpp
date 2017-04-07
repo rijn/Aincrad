@@ -181,6 +181,19 @@ class Operate {
         next(w);
     }
 
+    static void parse( wrapped& w ){
+        auto s = w.vstack.back();
+        w.vstack.pop_back();
+        string res = easy_type(s);
+        auto argv = util::split( res, '$' );
+        auto it = argv.begin();
+        for (; it != argv.end(); it++){
+            w.astack.push_back( *it );
+        }
+        next(w);
+    }
+
+
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
         std::transform( s.begin(), s.end(), s.begin(),
@@ -635,6 +648,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"newline", &Operate::newline},
                                   {"\\n", &Operate::newline},
                                   {"_", &Operate::empty},
+                                  {"parse", &Operate::parse},
                                   // archimatic operation
                                   {"-", &Operate::minus},
                                   {"+", &Operate::add},

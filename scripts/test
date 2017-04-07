@@ -1,22 +1,3 @@
-#DELIM
-#TARGET
-
-DELIM
-TARGET
-split
-_
-begin
-size
-1
->
-if
-++
-\n
-swap
-++
-else
-exit
-then
-end
-print
+run ping this
+parse
 
