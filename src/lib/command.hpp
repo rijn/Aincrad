@@ -1,21 +1,21 @@
 #ifndef __COMMAND__
 #define __COMMAND__
 
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/algorithm/string.hpp>  
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <numeric>
+#include <regex>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <vector>
-#include <iterator>
-#include <sstream>
-#include <algorithm>
-#include <regex>
 
 #include "client.hpp"
 #include "config.h"
@@ -31,7 +31,7 @@ using std::endl;
 namespace fs = boost::filesystem;
 
 namespace boost {
-namespace filesystem{
+namespace filesystem {
 
 static fs::path relativeTo( fs::path from, fs::path to ) {
     fs::path::const_iterator fromIter = from.begin();
@@ -70,6 +70,7 @@ class Operate {
                  network::client_ptr _client )
             : astack( _astack ),
               vstack( _vstack ),
+              ostack(),
               package( _package ),
               session( _session ),
               server( _server ),
@@ -77,6 +78,7 @@ class Operate {
 
         std::deque<std::string> astack;
         std::deque<std::string> vstack;
+        std::deque<std::string> ostack;
         network::package_ptr    package;
         network::session_ptr    session;
         network::server_ptr     server;
@@ -92,7 +94,6 @@ class Operate {
                 auto command = w.astack.back();
                 w.astack.pop_back();
                 fn_map[command]( w );
-                break;
             }
         }
     };
@@ -115,10 +116,11 @@ class Operate {
         }
     }
 
-    static void process( std::string line, network::package_ptr package,
-                         network::session_ptr session,
-                         network::server_ptr  server,
-                         network::client_ptr  client ) {
+    static std::deque<std::string> process( std::string          line,
+                                            network::package_ptr package,
+                                            network::session_ptr session,
+                                            network::server_ptr  server,
+                                            network::client_ptr  client ) {
         auto argv = util::split( line, '$' );
         _const( argv, package, session, server, client );
         wrapped w( std::deque<std::string>(), std::deque<std::string>(),
@@ -127,7 +129,14 @@ class Operate {
             w.astack.push_back( arg );
         }
         next( w );
+        std::cout << "[process]" << w.ostack.size() << std::endl;
+        return w.ostack;
     };
+
+    static void output( wrapped& w ) {
+        w.ostack.push_back( w.vstack.back() );
+        w.vstack.pop_back();
+    }
 
     static std::string _pack( wrapped& w ) {
         auto vp = std::accumulate(
@@ -145,54 +154,47 @@ class Operate {
 
     static void dup( wrapped& w ) {
         w.vstack.push_back( w.vstack.back() );
-        next( w );
     }
 
     static void lwc( wrapped& w ) {
         auto s = w.vstack.back();
-        boost::algorithm::to_lower(s);
+        boost::algorithm::to_lower( s );
         w.vstack.pop_back();
         w.vstack.push_back( s );
-        next(w);
     }
 
-    static void split( wrapped& w ){
+    static void split( wrapped& w ) {
         auto s = w.vstack.back();
         w.vstack.pop_back();
         auto b = w.vstack.back();
         w.vstack.pop_back();
-        std::regex e (b);
-        string res = std::regex_replace (s,e,"$");
-        auto argv = util::split( res, '$' );
-        auto it = argv.begin();
-        for (; it != argv.end(); it++){
+        std::regex e( b );
+        string     res  = std::regex_replace( s, e, "$" );
+        auto       argv = util::split( res, '$' );
+        auto       it   = argv.begin();
+        for ( ; it != argv.end(); it++ ) {
             w.vstack.push_back( *it );
         }
-        next(w);
     }
 
-    static void newline( wrapped& w ){
-        w.vstack.push_back("\n");
-        next(w);
+    static void newline( wrapped& w ) {
+        w.vstack.push_back( "\n" );
     }
 
-    static void empty( wrapped& w ){
-        w.vstack.push_back("");
-        next(w);
+    static void empty( wrapped& w ) {
+        w.vstack.push_back( "" );
     }
 
-    static void parse( wrapped& w ){
+    static void parse( wrapped& w ) {
         auto s = w.vstack.back();
         w.vstack.pop_back();
-        string res = easy_type(s);
-        auto argv = util::split( res, '$' );
-        auto it = argv.begin();
-        for (; it != argv.end(); it++){
+        string res  = easy_type( s );
+        auto   argv = util::split( res, '$' );
+        auto   it   = argv.begin();
+        for ( ; it != argv.end(); it++ ) {
             w.astack.push_back( *it );
         }
-        next(w);
     }
-
 
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
@@ -200,8 +202,7 @@ class Operate {
                         []( unsigned char c ) { return std::toupper( c ); } );
         w.vstack.pop_back();
         w.vstack.push_back( s );
-        next(w);
-    }    
+    }
 
     static void swap( wrapped& w ) {
         auto a = w.vstack.back();
@@ -210,12 +211,10 @@ class Operate {
         w.vstack.pop_back();
         w.vstack.push_back( a );
         w.vstack.push_back( b );
-        next( w );
     }
 
     static void size( wrapped& w ) {
         w.vstack.push_back( std::to_string( w.vstack.size() ) );
-        next( w );
     }
 
     static void print( wrapped& w ) {
@@ -225,7 +224,6 @@ class Operate {
                              return s1.empty() ? s2 : s1 + " " + s2;
                          } )
                   << std::endl;
-        next( w );
     }
 
     static void print_limit( wrapped& w ) {
@@ -237,7 +235,6 @@ class Operate {
             p = *it + " " + p;
         }
         std::cout << p << std::endl;
-        next( w );
     }
 
     static void drop( wrapped& w ) {
@@ -246,7 +243,6 @@ class Operate {
         while ( n-- > 0 ) {
             w.vstack.pop_back();
         }
-        next( w );
     }
 
     static void drop_one( wrapped& w ) {
@@ -290,8 +286,6 @@ class Operate {
                 t_deque.pop_back();
             }
         }
-
-        next( w );
     }
 
     static void begin( wrapped& w ) {
@@ -314,8 +308,6 @@ class Operate {
             w.astack.push_back( inner.back() );
             inner.pop_back();
         }
-
-        next( w );
     }
 
     static void exit( wrapped& w ) {
@@ -331,8 +323,6 @@ class Operate {
             if ( w.astack.back() == "end" ) --level;
             w.astack.pop_back();
         }
-
-        next( w );
     }
 
     static void to( wrapped& w ) {
@@ -340,6 +330,7 @@ class Operate {
         w.vstack.pop_back();
         auto p = _pack( w );
         w.server->sent_to( std::make_shared<network::Package>( p ), hostname );
+        w.astack.clear();
     }
 
     static void broadcast( wrapped& w ) {
@@ -354,7 +345,6 @@ class Operate {
 
     static void time( wrapped& w ) {
         w.vstack.push_back( util::get_time() );
-        next( w );
     }
 
     static void minus( wrapped& w ) {
@@ -363,7 +353,6 @@ class Operate {
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( std::to_string( b - a ) );
-        next( w );
     }
 
     static void add( wrapped& w ) {
@@ -372,7 +361,6 @@ class Operate {
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( std::to_string( a + b ) );
-        next( w );
     }
 
     static void greater( wrapped& w ) {
@@ -381,7 +369,6 @@ class Operate {
         long b = std::stol( w.vstack.back() );
         w.vstack.pop_back();
         w.vstack.push_back( b > a ? "1" : "0" );
-        next( w );
     }
 
     static void equal( wrapped& w ) {
@@ -390,7 +377,6 @@ class Operate {
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( b == a ? "1" : "0" );
-        next( w );
     }
 
     static void sadd( wrapped& w ) {
@@ -399,7 +385,6 @@ class Operate {
         auto b = w.vstack.back();
         w.vstack.pop_back();
         w.vstack.push_back( a + b );
-        next( w );
     }
 
     static void list_host( wrapped& w ) {
@@ -413,7 +398,6 @@ class Operate {
                            : s1 + "\n[" + s2->get_client_s() + "] " +
                                  s2->hostname;
             } ) );
-        next( w );
     }
 
     static void push_host( wrapped& w ) {
@@ -422,19 +406,18 @@ class Operate {
               it != w.server->get_clients().end(); ++it ) {
             w.vstack.push_back( ( *it )->hostname );
         }
-        next( w );
     }
 
     static void reg( wrapped& w ) {
         w.session->hostname = w.vstack.back();
         w.vstack.pop_back();
-        next( w );
     }
 
     static void forward( wrapped& w ) {
         auto p = _pack( w );
         if ( w.client )
             w.client->send( std::make_shared<network::Package>( p ) );
+        w.astack.clear();
     }
 
     static void system( wrapped& w ) {
@@ -443,8 +426,6 @@ class Operate {
 
         auto output = util::exec( command.c_str(), false );
         w.vstack.push_back( output );
-
-        next( w );
     }
 
     static void set_hostname( wrapped& w ) {
@@ -474,8 +455,13 @@ class Operate {
         while ( getline( file, str ) ) {
             if ( str.length() == 0 ) {
                 if ( !command.empty() ) {
-                    Operate::process( command, w.package, w.session, w.server,
-                                      w.client );
+                    auto _ostack = Operate::process(
+                        _pack( w ) + "$promise$" + command, w.package,
+                        w.session, w.server, w.client );
+                    while ( !_ostack.empty() ) {
+                        w.vstack.push_back( _ostack.front() );
+                        _ostack.pop_front();
+                    }
                 }
                 command = "";
                 continue;
@@ -491,7 +477,20 @@ class Operate {
             command = str + ( command.empty() ? "" : "$" ) + command;
         }
 
-        next( w );
+        w.astack.clear();
+    }
+
+    static void promise( wrapped& w ) {
+        w.vstack.clear();
+        while ( !w.astack.empty() &&
+                fn_map.find( w.astack.back() ) == fn_map.end() ) {
+            w.vstack.push_back( w.astack.back() );
+            w.astack.pop_back();
+        }
+        while ( !w.ostack.empty() ) {
+            w.vstack.push_back( w.ostack.front() );
+            w.ostack.pop_front();
+        }
     }
 
     static void s_list_host( wrapped& w ) {
@@ -502,7 +501,6 @@ class Operate {
         w.astack.push_back( w.client->hostname() );
         w.astack.push_back( "list_host" );
         w.astack.push_back( "->>" );
-        next( w );
     }
 
     static void s_ping( wrapped& w ) {
@@ -524,7 +522,6 @@ class Operate {
         w.astack.push_back( client_hostname );
         w.astack.push_back( "->>" );
         w.astack.push_back( "time" );
-        next( w );
     }
 
     static void sft( wrapped& w ) {
@@ -552,8 +549,6 @@ class Operate {
         } catch ( const std::exception& ex ) {
             std::cout << ex.what() << std::endl;
         }
-
-        next( w );
     }
 
     static void popfs( wrapped& w ) {
@@ -598,8 +593,6 @@ class Operate {
         } catch ( const std::exception& ex ) {
             std::cout << ex.what() << std::endl;
         }
-
-        next( w );
     }
 
     static void tree( wrapped& w ) {
@@ -613,7 +606,6 @@ class Operate {
         }
 
         if ( !fs::is_directory( full_path ) ) {
-            next( w );
             return;
         }
 
@@ -625,8 +617,6 @@ class Operate {
                     fs::relativeTo( dir_itr->path(), full_path ).string() );
             }
         }
-
-        next( w );
     }
 
    private:
@@ -649,6 +639,8 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"\\n", &Operate::newline},
                                   {"_", &Operate::empty},
                                   {"parse", &Operate::parse},
+                                  {"*", &Operate::output},
+                                  {"promise", &Operate::promise},
                                   // archimatic operation
                                   {"-", &Operate::minus},
                                   {"+", &Operate::add},
