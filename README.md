@@ -61,6 +61,8 @@ drop_one               # pop one elements
 >                      # greater, if false will push a 0 into vstack
 ==                     # equal, if false will push a 0 into vstack
 lwc / upc              # lower and upper case
+split                  # split(delim, target) split the string
+parse                  # split the commands and push into command stack (astack)
 
 if (else, then)        # if
 begin (end)            # loop
