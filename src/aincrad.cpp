@@ -82,7 +82,7 @@ int aincrad_main( int argc, char* argv[] ) {
             auto s = std::make_shared<network::Server>( io_service, endpoint );
             s->start();
 
-            register_processor( s, NULL, editor );
+            register_processor( s, NULL, &editor );
 
             io_service.run();
 
@@ -111,7 +111,7 @@ int aincrad_main( int argc, char* argv[] ) {
             std::cout << "Hostname " << c->hostname();
 
             // register event handler
-            register_processor( NULL, c, editor );
+            register_processor( NULL, c, &editor );
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
@@ -145,7 +145,7 @@ int aincrad_main( int argc, char* argv[] ) {
             // std::cout << "Hostname " << c->hostname() << std::endl;
             editor.status.print_filename( "Hostname " + c->hostname() );
 
-            register_processor( NULL, c, editor );
+            register_processor( NULL, c, &editor );
             c->on( "connect",
                    []( network::package_ptr, network::client_ptr client ) {
                        client->send( std::make_shared<network::Package>(
@@ -158,7 +158,7 @@ int aincrad_main( int argc, char* argv[] ) {
             std::string line;
             while ( wgetline( editor.file, line,
                               network::Package::max_body_length + 1 ) ) {
-                Operate::process( line, NULL, NULL, NULL, c, editor );
+                Operate::process( line, NULL, NULL, NULL, c, &editor );
             }
 
             c->close();
