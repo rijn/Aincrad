@@ -10,6 +10,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <boost/algorithm/string.hpp>  
 
 #include "client.hpp"
 #include "config.h"
@@ -114,12 +115,14 @@ class Operate {
     }
 
     static void lwc( wrapped& w ) {
-        std::string s = w.vstack.back();
-        std::transform(s.begin(), s.end(), s.begin(),
-            [](unsigned char c) { return std::tolower(c);});
+        auto s = w.vstack.back();
+        boost::algorithm::to_lower(s);
         w.vstack.pop_back();
         w.vstack.push_back( s );
+        next(w);
     }
+
+//    static void split()
 
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
@@ -127,7 +130,8 @@ class Operate {
             [](unsigned char c) { return std::toupper(c);});
         w.vstack.pop_back();
         w.vstack.push_back( s );
-    }
+        next(w);
+    }    
 
     static void swap( wrapped& w ) {
         auto a = w.vstack.back();
