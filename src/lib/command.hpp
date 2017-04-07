@@ -23,6 +23,8 @@
 #include "server.hpp"
 #include "util.h"
 
+#include "editor.h"
+
 using std::vector;
 using std::string;
 using std::cout;
@@ -67,14 +69,15 @@ class Operate {
         wrapped( std::deque<std::string> _astack,
                  std::deque<std::string> _vstack, network::package_ptr _package,
                  network::session_ptr _session, network::server_ptr _server,
-                 network::client_ptr _client )
+                 network::client_ptr _client, Editor* _editor )
             : astack( _astack ),
               vstack( _vstack ),
               ostack(),
               package( _package ),
               session( _session ),
               server( _server ),
-              client( _client ){};
+              client( _client ),
+              editor( _editor ){};
 
         std::deque<std::string> astack;
         std::deque<std::string> vstack;
@@ -83,6 +86,7 @@ class Operate {
         network::session_ptr    session;
         network::server_ptr     server;
         network::client_ptr     client;
+        Editor*                 editor;
     };
 
     static void next( wrapped& w ) {
@@ -120,11 +124,12 @@ class Operate {
                                             network::package_ptr package,
                                             network::session_ptr session,
                                             network::server_ptr  server,
-                                            network::client_ptr  client ) {
+                                            network::client_ptr  client,
+                                            Editor*              editor ) {
         auto argv = util::split( line, '$' );
         _const( argv, package, session, server, client );
         wrapped w( std::deque<std::string>(), std::deque<std::string>(),
-                   package, session, server, client );
+                   package, session, server, client, editor );
         for ( auto arg : argv ) {
             w.astack.push_back( arg );
         }
@@ -187,7 +192,7 @@ class Operate {
     static void parse( wrapped& w ) {
         auto s = w.vstack.back();
         w.vstack.pop_back();
-        string res  = easy_type( s );
+        string res  = util::easy_type( s );
         auto   argv = util::split( res, '$' );
         auto   it   = argv.begin();
         for ( ; it != argv.end(); it++ ) {
@@ -217,12 +222,17 @@ class Operate {
     }
 
     static void print( wrapped& w ) {
-        std::cout << std::accumulate(
-                         w.vstack.begin(), w.vstack.end(), string( "" ),
-                         []( const string& s1, const string& s2 ) -> string {
-                             return s1.empty() ? s2 : s1 + " " + s2;
-                         } )
-                  << std::endl;
+        // std::cout << std::accumulate(
+        //                  w.vstack.begin(), w.vstack.end(), string( "" ),
+        //                  []( const string& s1, const string& s2 ) -> string {
+        //                      return s1.empty() ? s2 : s1 + " " + s2;
+        //                  } )
+        //           << std::endl;
+        w.editor->status.print_filename( std::accumulate(
+            w.vstack.begin(), w.vstack.end(), string( "" ),
+            []( const string& s1, const string& s2 ) -> string {
+                return s1.empty() ? s2 : s1 + " " + s2;
+            } ) );
     }
 
     static void print_limit( wrapped& w ) {
@@ -233,7 +243,7 @@ class Operate {
               ++it, --n ) {
             p = *it + " " + p;
         }
-        std::cout << p << std::endl;
+        w.editor->status.print_filename(p);
     }
 
     static void drop( wrapped& w ) {
@@ -460,11 +470,7 @@ class Operate {
                 if ( !command.empty() ) {
                     auto _ostack = Operate::process(
                         _pack( w ) + "$promise$" + command, w.package,
-                        w.session, w.server, w.client );
-                    while ( !_ostack.empty() ) {
-                        w.vstack.push_back( _ostack.front() );
-                        _ostack.pop_front();
-                    }
+                        w.session, w.server, w.client, w.editor );
                 }
                 command = "";
                 continue;
@@ -680,8 +686,8 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"@ping", &Operate::s_ping}};
 
 // register command processor
-void register_processor( network::server_ptr server,
-                         network::client_ptr client ) {
+void register_processor( network::server_ptr server, network::client_ptr client,
+                         Editor* editor ) {
     if ( script_dir == "" ) {
         util::config _conf_remote;
         _conf_remote.read_config( util::get_working_path() + "/.config" );
@@ -689,18 +695,18 @@ void register_processor( network::server_ptr server,
     }
 
     if ( server )
-        server->on( "recv_package", []( network::package_ptr package,
-                                        network::session_ptr session,
-                                        network::server_ptr  server ) {
+        server->on( "recv_package", [editor]( network::package_ptr package,
+                                              network::session_ptr session,
+                                              network::server_ptr  server ) {
             Operate::process( string( package->body(), package->body_length() ),
-                              package, session, server, NULL );
+                              package, session, server, NULL, editor );
         } );
 
     if ( client )
-        client->on( "recv_package", []( network::package_ptr package,
-                                        network::client_ptr client ) {
+        client->on( "recv_package", [editor]( network::package_ptr package,
+                                              network::client_ptr client ) {
             Operate::process( string( package->body(), package->body_length() ),
-                              package, NULL, NULL, client );
+                              package, NULL, NULL, client, editor );
         } );
     return;
 }
