@@ -231,12 +231,16 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
                 s       = editor.file.history[idx];
             }
             editor.file.printline( "> " + s );
+            orig_x = s.size() + 2;
+            wmove( w, orig_y, orig_x );
         } else if ( curr == KEY_UP ) {
             --editor.file.vec_idx;
             if ( editor.file.vec_idx < 0 ) editor.file.vec_idx = 0;
             int idx = editor.file.vec_idx;
             s       = editor.file.history[idx];
             editor.file.printline( "> " + s );
+            orig_x = s.size() + 2;
+            wmove( w, orig_y, orig_x );
         } else if ( curr == ERR ) {
             if ( s.empty() ) return false;
             return true;
