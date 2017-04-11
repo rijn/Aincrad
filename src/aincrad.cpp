@@ -33,6 +33,8 @@ int main( int argc, char* argv[] ) {
      *std::set_terminate( error_handler );
      */
 
+    setlocale(LC_CTYPE, "");
+
     /* getting workpath */
     std::string working_path = util::get_working_path();
 #ifdef DEBUG
