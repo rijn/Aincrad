@@ -50,6 +50,7 @@ void StatusBar::print_aincrad() {
         history.push_back( i );
         mvwprintw( win, y++, 0, i.c_str() );
     }
+    history.push_back( "" );
     last_line = history.size();
     wrefresh( win );
 }
@@ -57,6 +58,7 @@ void StatusBar::print_aincrad() {
 void StatusBar::print_filename( const string& file_name ) {
     if ( !is_init ) return;
     vector<string> splited = util::split( file_name, '\n' );
+    if ( file_name.back() == '\n' ) splited.push_back( "\n" );
 
     history.insert( history.end(), splited.begin(), splited.end() );
     // history.push_back( file_name );
@@ -75,7 +77,7 @@ void StatusBar::print_filename( const string& file_name ) {
             wclrtoeol( win );  // erase current line
             waddnstr( win, ( *it ).c_str(), max_col );
         }
-        currrow = height - distance + 1;
+        currrow = height;
     } else {
         wmove( win, currrow, 0 );
         wclrtoeol( win );  // erase current line

@@ -33,7 +33,7 @@ int main( int argc, char* argv[] ) {
      *std::set_terminate( error_handler );
      */
 
-    setlocale(LC_CTYPE, "");
+    setlocale( LC_CTYPE, "" );
 
     /* getting workpath */
     std::string working_path = util::get_working_path();
@@ -184,7 +184,10 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
     int curr;  // current character to read
     while ( !n || s.size() != n ) {
         curr = wgetch( w );
-        if ( std::isprint( curr ) ) {
+        // if ( curr >= 'a' && curr <= 'z' ||
+        //     curr >= 'A' && curr <= 'Z' ||
+        //     curr >= '0' && curr <= '9' ) {
+        if ( curr >= ' ' && curr <= '~' ) {
             if ( ++orig_x <= max_col ) {
                 s.insert( s.begin() + ( orig_x - 3 ), curr );
                 wmove( w, 0, 2 );
