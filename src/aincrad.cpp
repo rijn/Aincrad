@@ -184,10 +184,10 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
     int curr;  // current character to read
     while ( !n || s.size() != n ) {
         curr = wgetch( w );
-        // if ( curr >= 'a' && curr <= 'z' ||
-        //     curr >= 'A' && curr <= 'Z' ||
-        //     curr >= '0' && curr <= '9' ) {
-        if ( curr >= ' ' && curr <= '~' ) {
+        if ( ( curr >= 'a' && curr <= 'z' ) || ( curr >= 'A' && curr <= 'Z' ) ||
+             ( curr >= '0' && curr <= '9' ) ||
+             std::string( " '!@#$%^&*(){}|:\"<>?,./;'[]\\-=_+`~" ).find( curr ) !=
+                 std::string::npos ) {
             if ( ++orig_x <= max_col ) {
                 s.insert( s.begin() + ( orig_x - 3 ), curr );
                 wmove( w, 0, 2 );
