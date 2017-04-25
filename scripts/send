@@ -10,6 +10,12 @@ size
 if
 exit
 else
+/
+DIR
+++
+++
+1
+print_limit
 sf
 ->>
 temp
@@ -21,4 +27,6 @@ this
 ->
 then
 end
+done
+print
 

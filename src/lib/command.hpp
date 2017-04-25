@@ -629,7 +629,7 @@ class Operate {
               dir_itr != end_iter; ++dir_itr ) {
             if ( fs::is_regular_file( dir_itr->status() ) ) {
                 w.vstack.push_back(
-                    fs::relativeTo( dir_itr->path(), full_path ).string() );
+                    fs::relativeTo( full_path, dir_itr->path() ).string() );
             }
         }
     }
