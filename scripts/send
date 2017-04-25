@@ -14,6 +14,7 @@ else
 DIR
 ++
 ++
+dup
 1
 print_limit
 sf
@@ -23,6 +24,10 @@ popfs
 TARGET
 temp
 sft
+TARGET
+->
+popfs
+->>
 this
 ->
 then
