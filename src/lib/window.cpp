@@ -42,7 +42,7 @@ void Window::clear() {
     wrefresh( win );
 }
 
-void StatusBar::print_aincrad() {
+void DisplayBlock::print_aincrad() {
     if ( !is_init ) return;
     int y = 0;
     wmove( win, 0, 0 );
@@ -55,7 +55,7 @@ void StatusBar::print_aincrad() {
     wrefresh( win );
 }
 
-void StatusBar::print_filename( const string& file_name ) {
+void DisplayBlock::print_filename( const string& file_name ) {
     if ( !is_init ) return;
     vector<string> splited = util::split( file_name, '\n' );
     if ( file_name.back() == '\n' ) splited.push_back( "\n" );

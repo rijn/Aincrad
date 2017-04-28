@@ -53,12 +53,12 @@ class Window {
 
    protected:
     bool    is_init = false;
-    WINDOW* win;  // status bar
+    WINDOW* win;  // display block
     size_t  max_row = 0;
     size_t  max_col = 0;
 };
 
-class StatusBar : public Window {
+class DisplayBlock : public Window {
    public:
     bool init( int maxrow, int maxcol ) {
         height = maxrow - 2;
@@ -76,7 +76,7 @@ class StatusBar : public Window {
     size_t currrow = 10;
 };
 
-class FileContent : public Window {
+class InputBar : public Window {
    public:
     std::vector<string> history;
     int                 vec_idx;
