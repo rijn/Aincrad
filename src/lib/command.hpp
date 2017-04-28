@@ -193,6 +193,10 @@ class Operate {
         w.vstack.push_back( w.vstack.back() );
     }
 
+    /*
+     * load and transform the command to
+     * lower command
+     */
     static void lwc( wrapped& w ) {
         auto s = w.vstack.back();
         boost::algorithm::to_lower( s );
@@ -200,6 +204,10 @@ class Operate {
         w.vstack.push_back( s );
     }
 
+    /*
+     * load and transform the command to
+     * upper command
+     */
     static void upc( wrapped& w ) {
         std::string s = w.vstack.back();
         std::transform( s.begin(), s.end(), s.begin(),
