@@ -29,9 +29,7 @@ Editor editor;  // for windows info, etc.
 
 int main( int argc, char* argv[] ) {
     /* error handler */
-    /*
-     *std::set_terminate( error_handler );
-     */
+    std::set_terminate( util::error_handler );
 
     setlocale( LC_CTYPE, "" );
 
@@ -42,7 +40,7 @@ int main( int argc, char* argv[] ) {
 #endif
 
     /* parser arguments */
-    arguments _arg;
+    util::arguments _arg;
     if ( !_arg.process_arguments( argc, argv ) ) return ( EXIT_FAILURE );
 
     /* check environment */
@@ -55,7 +53,9 @@ int main( int argc, char* argv[] ) {
     string role                      = _conf_remote.value( "basic", "role" );
     if ( _arg.exist( "role" ) ) role = _arg.value( "role" );
 
-    // cout << "role = " << role << endl;
+#ifdef DEBUG
+     cout << "role = " << role << endl;
+#endif
 
     try {
         if ( role == "server" ) {
@@ -121,7 +121,6 @@ int main( int argc, char* argv[] ) {
 
             if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
 
-            // cout << "Server " << addr << ":" << port << endl;
             editor.status.print_filename( "Server " + addr + ":" + port );
 
             boost::asio::io_service io_service;
@@ -131,7 +130,6 @@ int main( int argc, char* argv[] ) {
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
             c->set_hostname( util::get_hostname() );
-            // std::cout << "Hostname " << c->hostname() << std::endl;
             editor.status.print_filename( "Hostname " + c->hostname() );
 
             register_processor( NULL, c, &editor );
@@ -143,7 +141,6 @@ int main( int argc, char* argv[] ) {
 
             std::thread t( [&io_service]() { io_service.run(); } );
 
-            // char line[network::Package::max_body_length + 1];
             std::string line;
             while ( wgetline( editor.file, line,
                               network::Package::max_body_length + 1 ) ) {

@@ -12,6 +12,9 @@
 
 namespace util {
 
+/*
+ * trim string
+ */
 std::string trim( std::string const& source, char const* delims = " \t\r\n" ) {
     std::string            result( source );
     std::string::size_type index = result.find_last_not_of( delims );
@@ -25,6 +28,9 @@ std::string trim( std::string const& source, char const* delims = " \t\r\n" ) {
     return result;
 }
 
+/*
+ * read config file
+ */
 bool config::read_config( const std::string& folder_filename ) {
     std::string filename = folder_filename;
     if ( folder_filename == "" ||
@@ -62,6 +68,9 @@ bool config::read_config( const std::string& folder_filename ) {
     return true;
 }
 
+/*
+ * getters
+ */
 std::string const& config::value( std::string const& section,
                                   std::string const& entry ) const {
     std::map<std::string, std::string>::const_iterator ci =

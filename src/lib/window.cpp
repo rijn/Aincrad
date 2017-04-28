@@ -61,11 +61,8 @@ void StatusBar::print_filename( const string& file_name ) {
     if ( file_name.back() == '\n' ) splited.push_back( "\n" );
 
     history.insert( history.end(), splited.begin(), splited.end() );
-    // history.push_back( file_name );
     last_line = history.size();
 
-    // int num_chars = file_name.size();
-    // int num_rows  = num_chars / max_col;
     int next_row = currrow + splited.size();
     int distance = next_row - height;
 

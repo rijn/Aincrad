@@ -35,6 +35,9 @@ namespace fs = boost::filesystem;
 namespace boost {
 namespace filesystem {
 
+/*
+ * Extract differenct between two paths
+ */
 static fs::path relativeTo( fs::path from, fs::path to ) {
     fs::path::const_iterator fromIter = from.begin();
     fs::path::const_iterator toIter   = to.begin();
@@ -65,6 +68,11 @@ static std::string script_dir( "" );
 
 class Operate {
    public:
+    /*
+     * Wrapped object
+     * including call stack, variable stack, output stack,
+     * package, shared pointer to server / client / editor
+     */
     struct wrapped {
         wrapped( std::deque<std::string> _astack,
                  std::deque<std::string> _vstack, network::package_ptr _package,
@@ -89,6 +97,10 @@ class Operate {
         Editor*                 editor;
     };
 
+    /*
+     * next
+     * process call stack sequently
+     */
     static void next( wrapped& w ) {
         while ( !w.astack.empty() ) {
             if ( fn_map.find( w.astack.back() ) == fn_map.end() ) {
@@ -102,6 +114,11 @@ class Operate {
         }
     };
 
+    /*
+     * _const
+     * replace const variable and this
+     * special for scope operator
+     */
     static void _const( std::vector<std::string>& argv, network::package_ptr,
                         network::session_ptr, network::server_ptr,
                         network::client_ptr client ) {
@@ -120,6 +137,10 @@ class Operate {
         }
     }
 
+    /*
+     * process
+     * interpret a line of code
+     */
     static std::deque<std::string> process( std::string          line,
                                             network::package_ptr package,
                                             network::session_ptr session,
@@ -137,11 +158,19 @@ class Operate {
         return w.ostack;
     };
 
+    /*
+     * output operator (*)
+     * = return in script
+     */
     static void output( wrapped& w ) {
         w.ostack.push_back( w.vstack.back() );
         w.vstack.pop_back();
     }
 
+    /*
+     * _pack
+     * helper function for packing all the stacks into one string
+     */
     static std::string _pack( wrapped& w ) {
         auto vp = std::accumulate(
             w.vstack.begin(), w.vstack.end(), string( "" ),
@@ -156,6 +185,10 @@ class Operate {
         return ap + ( vp == "" ? "" : "$" ) + vp;
     }
 
+    /*
+     * dup operator
+     * duplicate the top element of vstack
+     */
     static void dup( wrapped& w ) {
         w.vstack.push_back( w.vstack.back() );
     }
@@ -167,6 +200,18 @@ class Operate {
         w.vstack.push_back( s );
     }
 
+    static void upc( wrapped& w ) {
+        std::string s = w.vstack.back();
+        std::transform( s.begin(), s.end(), s.begin(),
+                        []( unsigned char c ) { return std::toupper( c ); } );
+        w.vstack.pop_back();
+        w.vstack.push_back( s );
+    }
+
+    /*
+     * split
+     * split string by delimiter
+     */
     static void split( wrapped& w ) {
         auto s = w.vstack.back();
         w.vstack.pop_back();
@@ -181,14 +226,34 @@ class Operate {
         }
     }
 
+    /*
+     * newline
+     * special chararter
+     */
     static void newline( wrapped& w ) {
         w.vstack.push_back( "\n" );
     }
 
+    /*
+     * empty
+     * import a empty element into vstack
+     */
     static void empty( wrapped& w ) {
         w.vstack.push_back( "" );
     }
 
+    /*
+     * space
+     * import a space into vstack
+     */
+    static void space( wrapped& w ) {
+        w.vstack.push_back( " " );
+    }
+
+    /*
+     * parse
+     * evaluate one line from vstack
+     */
     static void parse( wrapped& w ) {
         auto s = w.vstack.back();
         w.vstack.pop_back();
@@ -200,14 +265,10 @@ class Operate {
         }
     }
 
-    static void upc( wrapped& w ) {
-        std::string s = w.vstack.back();
-        std::transform( s.begin(), s.end(), s.begin(),
-                        []( unsigned char c ) { return std::toupper( c ); } );
-        w.vstack.pop_back();
-        w.vstack.push_back( s );
-    }
-
+    /*
+     * swap
+     * swap the top two elements of vstack
+     */
     static void swap( wrapped& w ) {
         auto a = w.vstack.back();
         w.vstack.pop_back();
@@ -217,10 +278,18 @@ class Operate {
         w.vstack.push_back( b );
     }
 
+    /*
+     * size
+     * return the size of vstack
+     */
     static void size( wrapped& w ) {
         w.vstack.push_back( std::to_string( w.vstack.size() ) );
     }
 
+    /*
+     * print
+     * print whole vstack from bottom to top
+     */
     static void print( wrapped& w ) {
         if ( w.editor )
             w.editor->status.print_filename( std::accumulate(
@@ -252,6 +321,10 @@ class Operate {
             std::cout << p << std::endl;
     }
 
+    /*
+     * drop
+     * pop n elements from vstack
+     */
     static void drop( wrapped& w ) {
         auto n = std::atoi( w.vstack.back().c_str() );
         w.vstack.pop_back();
@@ -265,6 +338,9 @@ class Operate {
         drop( w );
     }
 
+    /*
+     * if
+     */
     static void _if( wrapped& w ) {
         bool                    _else_part = false;
         std::deque<std::string> t_deque;
@@ -303,6 +379,9 @@ class Operate {
         }
     }
 
+    /*
+     * begin
+     */
     static void begin( wrapped& w ) {
         std::deque<std::string> inner;
 
@@ -325,6 +404,10 @@ class Operate {
         }
     }
 
+    /*
+     * exit
+     * break from loop
+     */
     static void exit( wrapped& w ) {
         while ( !w.astack.empty() && w.astack.back() != "begin" ) {
             w.astack.pop_back();
@@ -340,6 +423,10 @@ class Operate {
         }
     }
 
+    /*
+     * to
+     * send whole wrapped to client/server
+     */
     static void to( wrapped& w ) {
         auto hostname = w.vstack.back();
         w.vstack.pop_back();
@@ -348,6 +435,9 @@ class Operate {
         w.astack.clear();
     }
 
+    /*
+     * deprecated
+     */
     static void broadcast( wrapped& w ) {
         auto block = w.vstack.back();
         w.vstack.pop_back();
@@ -358,10 +448,17 @@ class Operate {
                              } );
     }
 
+    /*
+     * time
+     * push current time into vstack
+     */
     static void time( wrapped& w ) {
         w.vstack.push_back( util::get_time() );
     }
 
+    /*
+     * arithmatic operations
+     */
     static void minus( wrapped& w ) {
         long a = std::stol( w.vstack.back() );
         w.vstack.pop_back();
@@ -402,6 +499,9 @@ class Operate {
         w.vstack.push_back( a + b );
     }
 
+    /*
+     * list_host
+     */
     static void list_host( wrapped& w ) {
         if ( w.server == nullptr ) return;
         w.vstack.push_back( std::accumulate(
@@ -415,6 +515,10 @@ class Operate {
             } ) );
     }
 
+    /*
+     * push_host
+     * push host list into vstack
+     */
     static void push_host( wrapped& w ) {
         if ( w.server == nullptr ) return;
         for ( auto it = w.server->get_clients().begin();
@@ -423,11 +527,19 @@ class Operate {
         }
     }
 
+    /*
+     * reg
+     * register hostname
+     */
     static void reg( wrapped& w ) {
         w.session->hostname = w.vstack.back();
         w.vstack.pop_back();
     }
 
+    /*
+     * forward
+     * send wrapped from client to server
+     */
     static void forward( wrapped& w ) {
         auto p = _pack( w );
         if ( w.client )
@@ -435,6 +547,10 @@ class Operate {
         w.astack.clear();
     }
 
+    /*
+     * system
+     * system command and return output
+     */
     static void system( wrapped& w ) {
         auto command = w.vstack.back();
         w.vstack.pop_back();
@@ -443,6 +559,10 @@ class Operate {
         w.vstack.push_back( output );
     }
 
+    /*
+     * set_hostname
+     * set local hostname and reg to server automatically
+     */
     static void set_hostname( wrapped& w ) {
         w.client->set_hostname( w.vstack.back() );
         w.vstack.pop_back();
@@ -450,10 +570,18 @@ class Operate {
             "reg$" + w.client->hostname() ) );
     }
 
+    /*
+     * hostname
+     * return current hostname
+     */
     static void hostname( wrapped& w ) {
         w.vstack.push_back( w.client ? w.client->hostname() : "server" );
     }
 
+    /*
+     * run
+     * run script
+     */
     static void run( wrapped& w ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
@@ -495,6 +623,10 @@ class Operate {
         w.astack.clear();
     }
 
+    /*
+     * promise
+     * make remaining call stack run after script asynchronous
+     */
     static void promise( wrapped& w ) {
         w.vstack.clear();
         while ( !w.astack.empty() &&
@@ -508,6 +640,10 @@ class Operate {
         }
     }
 
+    /*
+     * s_list_host
+     * syntax sugar
+     */
     static void s_list_host( wrapped& w ) {
         w.astack.clear();
         w.vstack.clear();
@@ -518,27 +654,10 @@ class Operate {
         w.astack.push_back( "->>" );
     }
 
-    static void s_ping( wrapped& w ) {
-        auto client_hostname = w.vstack.back();
-        w.vstack.clear();
-        w.astack.clear();
-        w.astack.push_back( "print" );
-        w.astack.push_back( "connected" );
-        w.astack.push_back( "[" );
-        w.astack.push_back( "this" );
-        w.astack.push_back( "]" );
-        w.astack.push_back( "ns" );
-        w.astack.push_back( "-" );
-        w.astack.push_back( "time" );
-        w.astack.push_back( "->" );
-        w.astack.push_back( w.client->hostname() );
-        w.astack.push_back( "->>" );
-        w.astack.push_back( "->" );
-        w.astack.push_back( client_hostname );
-        w.astack.push_back( "->>" );
-        w.astack.push_back( "time" );
-    }
-
+    /*
+     * sft
+     * send file to
+     */
     static void sft( wrapped& w ) {
         auto filename = w.vstack.back();
         w.vstack.pop_back();
@@ -566,6 +685,10 @@ class Operate {
         }
     }
 
+    /*
+     * popfs
+     * pop file stack
+     */
     static void popfs( wrapped& w ) {
         fs::path full_path( fs::initial_path<fs::path>() );
         full_path = fs::system_complete( fs::path( TEMP_PATH ) );
@@ -610,6 +733,10 @@ class Operate {
         }
     }
 
+    /*
+     * tree
+     * list dir and file recursively
+     */
     static void tree( wrapped& w ) {
         auto dir = w.vstack.back();
         w.vstack.pop_back();
@@ -640,6 +767,9 @@ class Operate {
     static FnMap fn_map;
 };
 
+/*
+ * function map
+ */
 Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"swap", &Operate::swap},
                                   {"size", &Operate::size},
@@ -687,9 +817,7 @@ Operate::FnMap Operate::fn_map = {{"dup", &Operate::dup},
                                   {"sendfile", &Operate::sft},
                                   {"popfs", &Operate::popfs},
                                   // sugar
-                                  {"@list_host", &Operate::s_list_host},
-                                  //{"@system", &Operate::s_system},
-                                  {"@ping", &Operate::s_ping}};
+                                  {"@list_host", &Operate::s_list_host}};
 
 // register command processor
 void register_processor( network::server_ptr server, network::client_ptr client,
