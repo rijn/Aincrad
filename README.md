@@ -215,7 +215,7 @@ All syntactic sugar starts with `@`. Remaining arguments after parsing a syntact
 
 ## Presentation
 
-![Slides](https://docs.google.com/presentation/d/1bVHTvuGpOiCniG19hEi2MQ-gNvQL2rrOo130Rr9W-so/edit?usp=sharing)
+[Slides](https://docs.google.com/presentation/d/1bVHTvuGpOiCniG19hEi2MQ-gNvQL2rrOo130Rr9W-so/edit?usp=sharing)
 
 ## License
 
