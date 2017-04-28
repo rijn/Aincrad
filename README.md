@@ -104,12 +104,12 @@ Some demo:
 
 * Set hostname
     ```
-    set_hostname$clientA
+    set_hostname clientA
     ```
 
 * Broadcast message to all client except self
     ```
-    print$message$broadcast$this$->>
+    print message broadcast this ->>
     ```
 
 * Ping client
@@ -148,14 +148,74 @@ Some demo:
     end$then$exit$else$drop$3$print_limit$3$ns$-$swap$time$swap$->$this$->>$->$dup$swap$->>$time$if$>$0$size$begin$->$this$push_host$->>
     ```
 
+## Script
+
+Aincrad allows script running with parameters and return value. The script files are stored under `scripst` subdirectory and can be called using `run` command by filename directally. Here are some scripts we provided.
+
+```
+run all command           # get an command from vstack and run it at every clients
+run ping [client|server]  # ping particular client or ping server
+send client dir           # send dir to another client
+```
+
 ## Syntactic sugar
 
 All syntactic sugar starts with `@`. Remaining arguments after parsing a syntactic sugar will not be processed.
 
 ```
 @list_host                  # list hosts connect to server
-@ping client                # ping client
 ```
+
+## Source code
+
+```
+.
+├── LICENSE                         # license
+├── Makefile
+├── README.md
+├── asio_patch                      # patch for Boost on osx
+│   ├── fenced_block.hpp
+│   └── std_fenced_block.hpp
+├── build-scripts                   # Script for make
+│   ├── tags.mk
+│   ├── ycm_extra_conf_template.py
+│   └── ycm_flags.mk
+├── install                         # install script for prerequsites
+│   ├── centos6.sh
+│   └── ubuntu.sh
+├── scripts                         # build-in scripts
+│   ├── all
+│   ├── ping
+│   ├── pm2
+│   └── send
+└── src                             # source code
+    ├── aincrad.cpp                 # main
+    ├── aincrad.h
+    └── lib
+        ├── arguments.cpp           # arguments
+        ├── arguments.h
+        ├── client.cpp              # client
+        ├── client.hpp
+        ├── command.cpp             # interpreter
+        ├── command.hpp
+        ├── config.cpp              # config file
+        ├── config.h
+        ├── editor.cpp              # editor, ncurses part
+        ├── editor.h
+        ├── optionparser.h
+        ├── package.cpp             # packet
+        ├── package.hpp
+        ├── server.cpp              # server
+        ├── server.hpp
+        ├── util.cpp                # utilities
+        ├── util.h
+        ├── window.cpp              # ncurses part
+        └── window.h
+```
+
+## Presentation
+
+![Slides](https://docs.google.com/presentation/d/1bVHTvuGpOiCniG19hEi2MQ-gNvQL2rrOo130Rr9W-so/edit?usp=sharing)
 
 ## License
 
