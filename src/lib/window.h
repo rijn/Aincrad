@@ -66,7 +66,7 @@ class DisplayBlock : public Window {
     }
 
     void print_aincrad();
-    void print_filename( const string& file_name );
+    void print_content( const string& content );
 
     std::vector<string> history;
     int                 last_line;

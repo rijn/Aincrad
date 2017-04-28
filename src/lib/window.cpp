@@ -55,10 +55,10 @@ void DisplayBlock::print_aincrad() {
     wrefresh( win );
 }
 
-void DisplayBlock::print_filename( const string& file_name ) {
+void DisplayBlock::print_content( const string& content ) {
     if ( !is_init ) return;
-    vector<string> splited = util::split( file_name, '\n' );
-    if ( file_name.back() == '\n' ) splited.push_back( "\n" );
+    vector<string> splited = util::split( content, '\n' );
+    if ( content.back() == '\n' ) splited.push_back( "\n" );
 
     history.insert( history.end(), splited.begin(), splited.end() );
     last_line = history.size();
@@ -78,7 +78,7 @@ void DisplayBlock::print_filename( const string& file_name ) {
     } else {
         wmove( win, currrow, 0 );
         wclrtoeol( win );  // erase current line
-        waddnstr( win, file_name.c_str(), -1 );
+        waddnstr( win, content.c_str(), -1 );
         // n is -1, then the entire string will be added
         currrow = next_row;
     }

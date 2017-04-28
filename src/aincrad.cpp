@@ -114,14 +114,14 @@ int main( int argc, char* argv[] ) {
 
             run_editor();
 
-            editor.block.print_filename( "role = " + role );
+            editor.block.print_content( "role = " + role );
 
             string addr = _conf_remote.value( "server", "addr" );
             string port = _conf_remote.value( "server", "port" );
 
             if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
 
-            editor.block.print_filename( "Server " + addr + ":" + port );
+            editor.block.print_content( "Server " + addr + ":" + port );
 
             boost::asio::io_service io_service;
 
@@ -130,7 +130,7 @@ int main( int argc, char* argv[] ) {
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
             c->set_hostname( util::get_hostname() );
-            editor.block.print_filename( "Hostname " + c->hostname() );
+            editor.block.print_content( "Hostname " + c->hostname() );
 
             register_processor( NULL, c, &editor );
             c->on( "connect",

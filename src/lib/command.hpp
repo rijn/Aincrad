@@ -300,7 +300,7 @@ class Operate {
      */
     static void print( wrapped& w ) {
         if ( w.editor )
-            w.editor->block.print_filename( std::accumulate(
+            w.editor->block.print_content( std::accumulate(
                 w.vstack.begin(), w.vstack.end(), string( "" ),
                 []( const string& s1, const string& s2 ) -> string {
                     return s1.empty() ? s2 : s1 + " " + s2;
@@ -324,7 +324,7 @@ class Operate {
             p = *it + " " + p;
         }
         if ( w.editor )
-            w.editor->block.print_filename( p );
+            w.editor->block.print_content( p );
         else
             std::cout << p << std::endl;
     }
