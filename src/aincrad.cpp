@@ -181,6 +181,8 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
     int curr;  // current character to read
     while ( !n || s.size() != n ) {
         curr = wgetch( w );
+        // is printable?
+        // cannot use isprint() cause we support UTF-8
         if ( ( curr >= 'a' && curr <= 'z' ) || ( curr >= 'A' && curr <= 'Z' ) ||
              ( curr >= '0' && curr <= '9' ) ||
              std::string( " '!@#$%^&*(){}|:\"<>?,./;'[]\\-=_+`~" )

@@ -73,12 +73,13 @@ class DisplayBlock : public Window {
     size_t              height;
 
    private:
+    // aincrad uses 10 lines already
     size_t currrow = 10;
 };
 
 class InputBar : public Window {
    public:
-    std::vector<string> history;
+    std::vector<string> history;  // store command line history
     int                 vec_idx;
 };
 #endif
