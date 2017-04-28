@@ -17,8 +17,8 @@ class Editor {
         return is_init;
     }
 
-    FileContent file;    // file contents
-    StatusBar   status;  // status_bar
+    InputBar     bar;    // Input Bar
+    DisplayBlock block;  // Display Block
 
    private:
     bool is_init = false;

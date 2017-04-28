@@ -54,7 +54,7 @@ int main( int argc, char* argv[] ) {
     if ( _arg.exist( "role" ) ) role = _arg.value( "role" );
 
 #ifdef DEBUG
-     cout << "role = " << role << endl;
+    cout << "role = " << role << endl;
 #endif
 
     try {
@@ -114,14 +114,14 @@ int main( int argc, char* argv[] ) {
 
             run_editor();
 
-            editor.status.print_filename( "role = " + role );
+            editor.block.print_filename( "role = " + role );
 
             string addr = _conf_remote.value( "server", "addr" );
             string port = _conf_remote.value( "server", "port" );
 
             if ( _arg.exist( "server" ) ) addr = _arg.value( "server" );
 
-            editor.status.print_filename( "Server " + addr + ":" + port );
+            editor.block.print_filename( "Server " + addr + ":" + port );
 
             boost::asio::io_service io_service;
 
@@ -130,7 +130,7 @@ int main( int argc, char* argv[] ) {
             auto          c = std::make_shared<network::Client>( io_service,
                                                         endpoint_iterator );
             c->set_hostname( util::get_hostname() );
-            editor.status.print_filename( "Hostname " + c->hostname() );
+            editor.block.print_filename( "Hostname " + c->hostname() );
 
             register_processor( NULL, c, &editor );
             c->on( "connect",
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] ) {
             std::thread t( [&io_service]() { io_service.run(); } );
 
             std::string line;
-            while ( wgetline( editor.file, line,
+            while ( wgetline( editor.bar, line,
                               network::Package::max_body_length + 1 ) ) {
                 Operate::process(
                     util::easy_type( std::string( line ) ).c_str(), NULL, NULL,
@@ -170,8 +170,8 @@ void run_editor() {
     editor.init( max_row, max_col );
     erase();
     refresh();
-    editor.status.print_aincrad();
-    editor.file.printline( "> " );
+    editor.block.print_aincrad();
+    editor.bar.printline( "> " );
 }
 
 bool wgetline( WINDOW* w, string& s, size_t n ) {
@@ -183,8 +183,8 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
         curr = wgetch( w );
         if ( ( curr >= 'a' && curr <= 'z' ) || ( curr >= 'A' && curr <= 'Z' ) ||
              ( curr >= '0' && curr <= '9' ) ||
-             std::string( " '!@#$%^&*(){}|:\"<>?,./;'[]\\-=_+`~" ).find( curr ) !=
-                 std::string::npos ) {
+             std::string( " '!@#$%^&*(){}|:\"<>?,./;'[]\\-=_+`~" )
+                     .find( curr ) != std::string::npos ) {
             if ( ++orig_x <= max_col ) {
                 s.insert( s.begin() + ( orig_x - 3 ), curr );
                 wmove( w, 0, 2 );
@@ -205,11 +205,11 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
 
         } else if ( curr == KEY_ENTER || curr == '\n' ) {
             if ( !s.empty() ) {
-                editor.file.history.push_back( s );
-                editor.file.vec_idx = editor.file.history.size();
+                editor.bar.history.push_back( s );
+                editor.bar.vec_idx = editor.bar.history.size();
             }
             wclrtoeol( w );  // erase current line
-            editor.file.printline( "> " );
+            editor.bar.printline( "> " );
             return true;
         } else if ( curr == KEY_LEFT ) {
             if ( --orig_x < 2 ) {
@@ -224,23 +224,23 @@ bool wgetline( WINDOW* w, string& s, size_t n ) {
                 wmove( w, orig_y, orig_x );
             }
         } else if ( curr == KEY_DOWN ) {
-            ++editor.file.vec_idx;
-            if ( editor.file.vec_idx >= (int)editor.file.history.size() ) {
-                editor.file.vec_idx = editor.file.history.size();
-                s                   = "";
+            ++editor.bar.vec_idx;
+            if ( editor.bar.vec_idx >= (int)editor.bar.history.size() ) {
+                editor.bar.vec_idx = editor.bar.history.size();
+                s                  = "";
             } else {
-                int idx = editor.file.vec_idx;
-                s       = editor.file.history[idx];
+                int idx = editor.bar.vec_idx;
+                s       = editor.bar.history[idx];
             }
-            editor.file.printline( "> " + s );
+            editor.bar.printline( "> " + s );
             orig_x = s.size() + 2;
             wmove( w, orig_y, orig_x );
-        } else if ( !editor.file.history.empty() && curr == KEY_UP ) {
-            --editor.file.vec_idx;
-            if ( editor.file.vec_idx < 0 ) editor.file.vec_idx = 0;
-            int idx = editor.file.vec_idx;
-            s       = editor.file.history[idx];
-            editor.file.printline( "> " + s );
+        } else if ( !editor.bar.history.empty() && curr == KEY_UP ) {
+            --editor.bar.vec_idx;
+            if ( editor.bar.vec_idx < 0 ) editor.bar.vec_idx = 0;
+            int idx = editor.bar.vec_idx;
+            s       = editor.bar.history[idx];
+            editor.bar.printline( "> " + s );
             orig_x = s.size() + 2;
             wmove( w, orig_y, orig_x );
         } else if ( curr == ERR ) {
